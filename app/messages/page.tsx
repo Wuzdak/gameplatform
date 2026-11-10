@@ -7,7 +7,9 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type ChangeEvent,
 } from "react";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
 type FriendEntry = {
@@ -28,7 +30,33 @@ type ChatMessage = {
   content: string;
   created_at: string;
   is_read: boolean;
+  media_path: string | null;
+  media_type: string | null;
+  media_name: string | null;
+  media_size: number | null;
+  media_url?: string | null;
 };
+
+const C = {
+  bg: "#111214",
+  surface: "#1B1D20",
+  surface2: "#242629",
+  border: "#303236",
+  orange: "#F07832",
+  text: "#E7E7E7",
+  muted: "#92949A",
+};
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "video/mp4",
+  "video/webm",
+];
 
 function getPresence(friend: FriendEntry) {
   if (!friend.last_seen) return "offline";
@@ -49,6 +77,43 @@ function formatTime(value: string) {
   });
 }
 
+function formatDate(value: string) {
+  const date = new Date(value);
+
+  return date.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+  });
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} КБ`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
+}
+
+function Logo() {
+  return (
+    <Link href="/" className="flex items-center gap-2.5">
+      <div
+        className="flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-black"
+        style={{
+          background: C.orange,
+          boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
+        }}
+      >
+        V
+      </div>
+
+      <span className="text-xl font-black tracking-tight text-white">
+        VEX<span style={{ color: C.orange }}>ORA</span>
+      </span>
+    </Link>
+  );
+}
+
 export default function MessagesPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [friends, setFriends] = useState<FriendEntry[]>([]);
@@ -62,11 +127,52 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const bottomRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedFriend =
     friends.find((friend) => friend.friend_id === selectedFriendId) || null;
 
+  // Создание временного предпросмотра выбранного файла
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(selectedFile);
+    setPreviewUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [selectedFile]);
+
+  // Получение временной ссылки на приватный файл
+  const addSignedUrl = useCallback(async (message: ChatMessage) => {
+    if (!message.media_path) {
+      return { ...message, media_url: null };
+    }
+
+    const { data, error } = await supabase.storage
+      .from("chat-media")
+      .createSignedUrl(message.media_path, 3600);
+
+    if (error || !data?.signedUrl) {
+      console.error("Не удалось получить ссылку на вложение:", error);
+      return { ...message, media_url: null };
+    }
+
+    return {
+      ...message,
+      media_url: data.signedUrl,
+    };
+  }, []);
+
+  // Загрузка сообщений
   const loadMessages = useCallback(async () => {
     if (!userId || !selectedFriendId) {
       setMessages([]);
@@ -75,46 +181,64 @@ export default function MessagesPage() {
 
     setLoadingMessages(true);
 
-    const { data, error } = await supabase
-      .from("messages")
-      .select("*")
-      .or(
-        `and(sender_id.eq.${userId},receiver_id.eq.${selectedFriendId}),and(sender_id.eq.${selectedFriendId},receiver_id.eq.${userId})`
-      )
-      .order("created_at", { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .or(
+          `and(sender_id.eq.${userId},receiver_id.eq.${selectedFriendId}),and(sender_id.eq.${selectedFriendId},receiver_id.eq.${userId})`
+        )
+        .order("created_at", { ascending: true });
 
-    if (error) {
-      setNotice("Не удалось загрузить сообщения: " + error.message);
-    } else {
-      setMessages((data || []) as ChatMessage[]);
+      if (error) {
+        setNotice("Не удалось загрузить сообщения: " + error.message);
+        return;
+      }
+
+      const messagesWithUrls = await Promise.all(
+        ((data || []) as ChatMessage[]).map(addSignedUrl)
+      );
+
+      setMessages(messagesWithUrls);
+    } catch (error) {
+      setNotice(
+        "Ошибка загрузки: " +
+          (error instanceof Error ? error.message : "Неизвестная ошибка")
+      );
+    } finally {
+      setLoadingMessages(false);
     }
+  }, [userId, selectedFriendId, addSignedUrl]);
 
-    setLoadingMessages(false);
-  }, [userId, selectedFriendId]);
-
+  // Инициализация
   useEffect(() => {
     let active = true;
 
     async function initialize() {
-      const { data: authData, error: authError } =
-        await supabase.auth.getUser();
+      try {
+        const { data: authData, error: authError } =
+          await supabase.auth.getUser();
 
-      if (!active) return;
+        if (!active) return;
 
-      if (authError || !authData.user) {
-        setLoading(false);
-        return;
-      }
+        if (authError || !authData.user) {
+          setNotice("Не удалось определить пользователя. Войди в аккаунт.");
+          setLoading(false);
+          return;
+        }
 
-      setUserId(authData.user.id);
+        setUserId(authData.user.id);
 
-      const { data, error } = await supabase.rpc("get_friend_data");
+        const { data, error } = await supabase.rpc("get_friend_data");
 
-      if (!active) return;
+        if (!active) return;
 
-      if (error) {
-        setNotice("Не удалось загрузить друзей: " + error.message);
-      } else {
+        if (error) {
+          setNotice("Не удалось загрузить друзей: " + error.message);
+          setLoading(false);
+          return;
+        }
+
         const acceptedFriends = ((data || []) as FriendEntry[]).filter(
           (friend) =>
             friend.direction === "friend" &&
@@ -126,9 +250,16 @@ export default function MessagesPage() {
         if (acceptedFriends.length > 0) {
           setSelectedFriendId(acceptedFriends[0].friend_id);
         }
+      } catch (error) {
+        if (active) {
+          setNotice(
+            "Ошибка инициализации: " +
+              (error instanceof Error ? error.message : "Неизвестная ошибка")
+          );
+        }
+      } finally {
+        if (active) setLoading(false);
       }
-
-      setLoading(false);
     }
 
     initialize();
@@ -142,6 +273,7 @@ export default function MessagesPage() {
     loadMessages();
   }, [loadMessages]);
 
+  // Supabase Realtime
   useEffect(() => {
     if (!userId || !selectedFriendId) return;
 
@@ -163,153 +295,516 @@ export default function MessagesPage() {
             (newMessage.sender_id === selectedFriendId &&
               newMessage.receiver_id === userId);
 
-          if (belongsToChat) {
-            loadMessages();
-          }
+          if (!belongsToChat) return;
+
+          void (async () => {
+            const messageWithUrl = await addSignedUrl(newMessage);
+
+            setMessages((current) => {
+              const existing = current.find(
+                (message) => message.id === messageWithUrl.id
+              );
+
+              if (existing) {
+                return current.map((message) =>
+                  message.id === messageWithUrl.id
+                    ? { ...message, ...messageWithUrl }
+                    : message
+                );
+              }
+
+              return [...current, messageWithUrl].sort(
+                (a, b) =>
+                  new Date(a.created_at).getTime() -
+                  new Date(b.created_at).getTime()
+              );
+            });
+          })();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setNotice(
+            "Не удалось подключиться к обновлениям чата. Проверь соединение."
+          );
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, selectedFriendId, loadMessages]);
+  }, [userId, selectedFriendId, addSignedUrl]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Выбор файла
+  function handleFileSelect(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    setNotice("");
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setNotice(
+        "Этот формат не поддерживается. Выбери JPG, PNG, WEBP, GIF, MP4 или WebM."
+      );
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setNotice("Размер файла не должен превышать 50 МБ.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size === 0) {
+      setNotice("Нельзя отправить пустой файл.");
+      event.target.value = "";
+      return;
+    }
+
+    setSelectedFile(file);
+  }
+
+  function removeSelectedFile() {
+    setSelectedFile(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  // Отправка сообщения и вложения
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const content = text.trim();
 
-    if (!content || !userId || !selectedFriendId || sending) return;
+    if (
+      (!content && !selectedFile) ||
+      !userId ||
+      !selectedFriendId ||
+      sending
+    ) {
+      return;
+    }
 
     setSending(true);
     setNotice("");
 
-    const { error } = await supabase.from("messages").insert({
-      sender_id: userId,
-      receiver_id: selectedFriendId,
-      content,
-    });
+    let uploadedPath: string | null = null;
 
-    if (error) {
-      setNotice("Не удалось отправить сообщение: " + error.message);
-    } else {
+    try {
+      let mediaPath: string | null = null;
+      let mediaType: string | null = null;
+      let mediaName: string | null = null;
+      let mediaSize: number | null = null;
+
+      // Сначала загружаем файл, если он выбран
+      if (selectedFile) {
+        const safeName = selectedFile.name
+          .replace(/[^a-zA-Z0-9._-]/g, "_")
+          .slice(-100);
+
+        const uniqueName = `${crypto.randomUUID()}-${safeName}`;
+
+        const path = `${userId}/${selectedFriendId}/${uniqueName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("chat-media")
+          .upload(path, selectedFile, {
+            contentType: selectedFile.type,
+            upsert: false,
+          });
+
+        if (uploadError) {
+          setNotice(
+            "Не удалось загрузить файл: " + uploadError.message
+          );
+          return;
+        }
+
+        uploadedPath = path;
+        mediaPath = path;
+        mediaType = selectedFile.type;
+        mediaName = selectedFile.name;
+        mediaSize = selectedFile.size;
+      }
+
+      // Сохраняем сообщение в базе
+      const { data, error } = await supabase
+        .from("messages")
+        .insert({
+          sender_id: userId,
+          receiver_id: selectedFriendId,
+          content,
+          is_read: false,
+          media_path: mediaPath,
+          media_type: mediaType,
+          media_name: mediaName,
+          media_size: mediaSize,
+        })
+        .select("*")
+        .single();
+
+      if (error) {
+        // Если сообщение не сохранилось, удаляем загруженный файл
+        if (uploadedPath) {
+          await supabase.storage
+            .from("chat-media")
+            .remove([uploadedPath]);
+        }
+
+        setNotice("Не удалось отправить сообщение: " + error.message);
+        return;
+      }
+
+      if (!data) {
+        if (uploadedPath) {
+          await supabase.storage
+            .from("chat-media")
+            .remove([uploadedPath]);
+        }
+
+        setNotice("Supabase не вернул сохранённое сообщение.");
+        return;
+      }
+
+      const savedMessage = await addSignedUrl(data as ChatMessage);
+
+      setMessages((current) => {
+        const existing = current.some(
+          (message) => message.id === savedMessage.id
+        );
+
+        if (existing) {
+          return current.map((message) =>
+            message.id === savedMessage.id
+              ? { ...message, ...savedMessage }
+              : message
+          );
+        }
+
+        return [...current, savedMessage];
+      });
+
       setText("");
-      await loadMessages();
-    }
+      setSelectedFile(null);
 
-    setSending(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      if (uploadedPath) {
+        await supabase.storage
+          .from("chat-media")
+          .remove([uploadedPath]);
+      }
+
+      setNotice(
+        "Ошибка отправки: " +
+          (error instanceof Error ? error.message : "Неизвестная ошибка")
+      );
+    } finally {
+      setSending(false);
+    }
   }
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#0b0d14] text-white">
-        Загрузка сообщений...
+      <main
+        className="flex min-h-screen items-center justify-center"
+        style={{ background: C.bg, color: C.text }}
+      >
+        <div className="text-center">
+          <div
+            className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-t-transparent"
+            style={{
+              borderColor: `${C.orange} transparent ${C.orange} ${C.orange}`,
+            }}
+          />
+          <p className="mt-5 text-sm font-semibold">
+            Загружаем сообщения VEXORA...
+          </p>
+        </div>
       </main>
     );
   }
 
   if (!userId) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#0b0d14] px-5 text-white">
-        <div className="text-center">
-          <div className="text-5xl">💬</div>
-          <h1 className="mt-5 text-2xl font-bold">
+      <main
+        className="flex min-h-screen items-center justify-center px-5"
+        style={{ background: C.bg, color: C.text }}
+      >
+        <div
+          className="w-full max-w-md rounded-2xl border p-10 text-center"
+          style={{
+            background: C.surface,
+            borderColor: C.border,
+          }}
+        >
+          <div
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
+            style={{
+              background: "rgba(240,120,50,0.12)",
+              color: C.orange,
+            }}
+          >
+            ✉
+          </div>
+
+          <h1 className="mt-5 text-2xl font-black">
             Ты не авторизован
           </h1>
-          <a href="/auth" className="mt-4 block text-violet-400">
+
+          <p className="mt-3 text-sm" style={{ color: C.muted }}>
+            Войди в аккаунт, чтобы пользоваться сообщениями VEXORA.
+          </p>
+
+          <Link
+            href="/auth"
+            className="mt-7 inline-block rounded-xl px-7 py-3 font-bold text-black transition hover:brightness-110"
+            style={{ background: C.orange }}
+          >
             Перейти ко входу
-          </a>
+          </Link>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0d14] px-4 py-6 text-white sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <a href="/" className="text-2xl font-black">
-            Game<span className="text-violet-400">Platform</span>
-          </a>
+    <main
+      className="min-h-screen px-3 py-5 sm:px-6 sm:py-7"
+      style={{ background: C.bg, color: C.text }}
+    >
+      <div className="mx-auto max-w-7xl">
+        {/* HEADER */}
+        <header className="mb-7 flex flex-wrap items-center justify-between gap-4">
+          <Logo />
 
-          <a
-            href="/friends"
-            className="rounded-xl border border-white/10 px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10"
+          <div className="flex items-center gap-2">
+            <Link
+              href="/friends"
+              className="rounded-xl border px-4 py-2.5 text-sm font-semibold transition hover:bg-white/5"
+              style={{
+                borderColor: C.border,
+                color: C.muted,
+              }}
+            >
+              ← Друзья
+            </Link>
+
+            <Link
+              href="/profile"
+              className="hidden rounded-xl px-4 py-2.5 text-sm font-bold text-black transition hover:brightness-110 sm:block"
+              style={{ background: C.orange }}
+            >
+              Профиль
+            </Link>
+          </div>
+        </header>
+
+        {/* PAGE TITLE */}
+        <section className="mb-6">
+          <p
+            className="text-xs font-black uppercase tracking-[0.25em]"
+            style={{ color: C.orange }}
           >
-            ← Мои друзья
-          </a>
-        </div>
+            VEXORA COMMUNICATION
+          </p>
 
-        <h1 className="mb-6 text-3xl font-black">Личные сообщения</h1>
+          <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+                Сообщения
+              </h1>
 
+              <p className="mt-2 text-sm" style={{ color: C.muted }}>
+                Общайся с друзьями и оставайся на связи.
+              </p>
+            </div>
+
+            <div
+              className="hidden items-center gap-2 rounded-xl border px-4 py-2 text-xs font-semibold sm:flex"
+              style={{
+                background: C.surface,
+                borderColor: C.border,
+                color: C.muted,
+              }}
+            >
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ background: C.orange }}
+              />
+              Личные сообщения
+            </div>
+          </div>
+        </section>
+
+        {/* ERRORS */}
         {notice && (
-          <div className="mb-5 rounded-xl border border-violet-400/20 bg-violet-500/10 p-4 text-sm text-violet-200">
-            {notice}
+          <div
+            className="mb-5 flex items-start gap-3 rounded-xl border p-4 text-sm"
+            style={{
+              background: "rgba(239,68,68,0.08)",
+              borderColor: "rgba(239,68,68,0.25)",
+              color: "#FCA5A5",
+            }}
+          >
+            <span className="text-lg">!</span>
+            <span className="break-words">{notice}</span>
           </div>
         )}
 
-        <div className="grid min-h-[650px] overflow-hidden rounded-2xl border border-white/10 bg-[#121622] md:grid-cols-[280px_1fr]">
-          {/* Список друзей */}
-          <aside className="border-b border-white/10 md:border-b-0 md:border-r">
-            <div className="border-b border-white/10 p-5">
-              <h2 className="font-bold">Диалоги</h2>
-              <p className="mt-1 text-xs text-gray-500">
-                Твои друзья на GamePlatform
+        {/* CHAT */}
+        <div
+          className="grid min-h-[680px] overflow-hidden rounded-2xl border shadow-2xl md:grid-cols-[290px_1fr]"
+          style={{
+            background: C.surface,
+            borderColor: C.border,
+            boxShadow: "0 25px 80px rgba(0,0,0,0.2)",
+          }}
+        >
+          {/* FRIENDS SIDEBAR */}
+          <aside
+            className="flex min-h-0 flex-col border-b md:border-b-0 md:border-r"
+            style={{
+              background: "#17181A",
+              borderColor: C.border,
+            }}
+          >
+            <div
+              className="border-b p-5"
+              style={{ borderColor: C.border }}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="font-black">Диалоги</h2>
+
+                <span
+                  className="rounded-lg px-2.5 py-1 text-xs font-bold"
+                  style={{
+                    background: "rgba(240,120,50,0.12)",
+                    color: C.orange,
+                  }}
+                >
+                  {friends.length}
+                </span>
+              </div>
+
+              <p className="mt-1 text-xs" style={{ color: C.muted }}>
+                Твои друзья на VEXORA
               </p>
             </div>
 
             {friends.length === 0 ? (
-              <div className="p-5 text-sm text-gray-500">
-                У тебя пока нет друзей.
-                <a
+              <div className="p-5">
+                <div
+                  className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl"
+                  style={{
+                    background: "rgba(240,120,50,0.1)",
+                    color: C.orange,
+                  }}
+                >
+                  ♧
+                </div>
+
+                <p className="mt-4 text-sm font-bold">
+                  Пока нет друзей
+                </p>
+
+                <p className="mt-1 text-xs" style={{ color: C.muted }}>
+                  Добавь игроков, чтобы начать переписку.
+                </p>
+
+                <Link
                   href="/friends"
-                  className="mt-2 block text-violet-400 hover:text-violet-300"
+                  className="mt-4 inline-flex text-sm font-bold transition hover:brightness-125"
+                  style={{ color: C.orange }}
                 >
                   Найти игроков →
-                </a>
+                </Link>
               </div>
             ) : (
-              <div className="max-h-[300px] overflow-y-auto md:max-h-[580px]">
+              <div className="max-h-[320px] flex-1 overflow-y-auto md:max-h-none">
                 {friends.map((friend) => {
                   const presence = getPresence(friend);
-                  const selected = selectedFriendId === friend.friend_id;
+                  const selected =
+                    selectedFriendId === friend.friend_id;
 
                   return (
                     <button
                       key={friend.friend_id}
+                      type="button"
                       onClick={() => {
                         setSelectedFriendId(friend.friend_id);
                         setNotice("");
+                        setSelectedFile(null);
+
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = "";
+                        }
                       }}
-                      className={`flex w-full items-center gap-3 border-b border-white/5 p-4 text-left transition ${
-                        selected
-                          ? "bg-violet-500/15"
-                          : "hover:bg-white/5"
-                      }`}
+                      className="relative flex w-full items-center gap-3 border-b p-4 text-left transition"
+                      style={{
+                        borderColor: "rgba(255,255,255,0.04)",
+                        background: selected
+                          ? "rgba(240,120,50,0.1)"
+                          : "transparent",
+                      }}
                     >
-                      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-xl">
-                        👤
+                      {selected && (
                         <span
-                          className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#121622] ${
-                            presence === "online"
-                              ? "bg-emerald-400"
-                              : presence === "do_not_disturb"
-                                ? "bg-red-400"
-                                : "bg-gray-500"
-                          }`}
+                          className="absolute bottom-3 left-0 top-3 w-[3px] rounded-r-full"
+                          style={{ background: C.orange }}
+                        />
+                      )}
+
+                      <div
+                        className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-black"
+                        style={{
+                          background: "rgba(240,120,50,0.12)",
+                          color: C.orange,
+                          border: "1px solid rgba(240,120,50,0.15)",
+                        }}
+                      >
+                        {(friend.full_name || "И")
+                          .charAt(0)
+                          .toUpperCase()}
+
+                        <span
+                          className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-[3px]"
+                          style={{
+                            borderColor: "#17181A",
+                            background:
+                              presence === "online"
+                                ? "#22C55E"
+                                : presence === "do_not_disturb"
+                                  ? "#EF4444"
+                                  : "#64666C",
+                          }}
                         />
                       </div>
 
-                      <div className="min-w-0">
-                        <div className="truncate font-bold">
+                      <div className="min-w-0 flex-1">
+                        <div
+                          className="truncate text-sm font-bold"
+                          style={{
+                            color: selected ? C.orange : C.text,
+                          }}
+                        >
                           {friend.full_name || "Игрок"}
                         </div>
-                        <div className="mt-1 text-xs text-gray-500">
+
+                        <div
+                          className="mt-1 flex items-center gap-1.5 text-xs"
+                          style={{ color: C.muted }}
+                        >
                           {presence === "online"
                             ? "В сети"
                             : presence === "do_not_disturb"
@@ -317,115 +812,506 @@ export default function MessagesPage() {
                               : "Оффлайн"}
                         </div>
                       </div>
+
+                      <span
+                        className="text-lg"
+                        style={{
+                          color: selected ? C.orange : "#55575C",
+                        }}
+                      >
+                        ›
+                      </span>
                     </button>
                   );
                 })}
               </div>
             )}
+
+            <div
+              className="mt-auto hidden border-t p-4 md:block"
+              style={{ borderColor: C.border }}
+            >
+              <Link
+                href="/friends"
+                className="flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-bold transition hover:bg-white/5"
+                style={{
+                  borderColor: C.border,
+                  color: C.muted,
+                }}
+              >
+                + Добавить друга
+              </Link>
+            </div>
           </aside>
 
-          {/* Переписка */}
-          <section className="flex min-h-[580px] min-w-0 flex-col">
+          {/* CHAT AREA */}
+          <section className="flex min-h-[580px] min-w-0 flex-col md:min-h-[680px]">
             {selectedFriend ? (
               <>
-                <div className="flex items-center gap-3 border-b border-white/10 p-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/20">
-                    👤
+                {/* CHAT HEADER */}
+                <div
+                  className="flex items-center justify-between gap-3 border-b px-4 py-4 sm:px-6"
+                  style={{
+                    background: "#191A1D",
+                    borderColor: C.border,
+                  }}
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-black"
+                      style={{
+                        background: "rgba(240,120,50,0.12)",
+                        color: C.orange,
+                      }}
+                    >
+                      {(selectedFriend.full_name || "И")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+
+                    <div className="min-w-0">
+                      <h2 className="truncate font-black">
+                        {selectedFriend.full_name || "Игрок"}
+                      </h2>
+
+                      <div
+                        className="mt-1 flex items-center gap-1.5 text-xs"
+                        style={{ color: C.muted }}
+                      >
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{
+                            background:
+                              getPresence(selectedFriend) === "online"
+                                ? "#22C55E"
+                                : getPresence(selectedFriend) ===
+                                    "do_not_disturb"
+                                  ? "#EF4444"
+                                  : "#64666C",
+                          }}
+                        />
+
+                        {getPresence(selectedFriend) === "online"
+                          ? "В сети"
+                          : getPresence(selectedFriend) ===
+                              "do_not_disturb"
+                            ? "Не беспокоить"
+                            : "Оффлайн"}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="font-bold">
-                      {selectedFriend.full_name || "Игрок"}
-                    </h2>
-                    <p className="text-xs text-gray-500">
-                      Личная переписка
-                    </p>
-                  </div>
+
+                  <Link
+                    href="/friends"
+                    className="hidden rounded-lg border px-3 py-2 text-xs font-semibold transition hover:bg-white/5 sm:block"
+                    style={{
+                      borderColor: C.border,
+                      color: C.muted,
+                    }}
+                  >
+                    Друзья
+                  </Link>
                 </div>
 
-                <div className="flex-1 space-y-3 overflow-y-auto p-4">
+                {/* MESSAGES */}
+                <div
+                  className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at top right, rgba(240,120,50,0.035), transparent 55%), #141517",
+                  }}
+                >
                   {loadingMessages ? (
-                    <p className="text-center text-sm text-gray-500">
-                      Загрузка переписки...
-                    </p>
-                  ) : messages.length === 0 ? (
-                    <div className="flex h-full min-h-[300px] items-center justify-center text-center">
-                      <div>
-                        <div className="text-4xl">💬</div>
-                        <p className="mt-3 font-bold">
-                          Пока нет сообщений
+                    <div className="flex min-h-[300px] items-center justify-center">
+                      <div className="text-center">
+                        <div
+                          className="mx-auto h-8 w-8 animate-spin rounded-full border-[3px] border-t-transparent"
+                          style={{
+                            borderColor: `${C.orange} transparent ${C.orange} ${C.orange}`,
+                          }}
+                        />
+                        <p
+                          className="mt-4 text-sm"
+                          style={{ color: C.muted }}
+                        >
+                          Загружаем переписку...
                         </p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Напиши первым!
+                      </div>
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="flex min-h-[380px] items-center justify-center text-center">
+                      <div>
+                        <div
+                          className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
+                          style={{
+                            background: "rgba(240,120,50,0.1)",
+                            color: C.orange,
+                          }}
+                        >
+                          ✉
+                        </div>
+
+                        <h3 className="mt-5 text-lg font-black">
+                          Пока нет сообщений
+                        </h3>
+
+                        <p
+                          className="mt-2 text-sm"
+                          style={{ color: C.muted }}
+                        >
+                          Начни общение прямо сейчас!
                         </p>
                       </div>
                     </div>
                   ) : (
-                    messages.map((message) => {
-                      const mine = message.sender_id === userId;
-
-                      return (
-                        <div
-                          key={message.id}
-                          className={`flex ${mine ? "justify-end" : "justify-start"}`}
+                    <>
+                      <div className="flex justify-center">
+                        <span
+                          className="rounded-full border px-3 py-1.5 text-[10px] font-semibold"
+                          style={{
+                            background: C.surface,
+                            borderColor: C.border,
+                            color: C.muted,
+                          }}
                         >
-                          <div
-                            className={`max-w-[85%] rounded-2xl px-4 py-3 sm:max-w-[70%] ${
-                              mine
-                                ? "rounded-br-sm bg-violet-600"
-                                : "rounded-bl-sm bg-[#202738]"
-                            }`}
-                          >
-                            <p className="whitespace-pre-wrap break-words text-sm">
-                              {message.content}
-                            </p>
-                            <div className="mt-2 text-right text-[10px] text-white/60">
-                              {formatTime(message.created_at)}
+                          История переписки
+                        </span>
+                      </div>
+
+                      {messages.map((message, index) => {
+                        const mine = message.sender_id === userId;
+                        const previousMessage = messages[index - 1];
+
+                        const showDate =
+                          !previousMessage ||
+                          new Date(previousMessage.created_at)
+                            .toDateString() !==
+                            new Date(message.created_at).toDateString();
+
+                        return (
+                          <div key={message.id}>
+                            {showDate && (
+                              <div className="my-5 flex justify-center">
+                                <span
+                                  className="rounded-full border px-3 py-1 text-[10px] font-semibold"
+                                  style={{
+                                    background: C.surface,
+                                    borderColor: C.border,
+                                    color: C.muted,
+                                  }}
+                                >
+                                  {formatDate(message.created_at)}
+                                </span>
+                              </div>
+                            )}
+
+                            <div
+                              className={`flex ${
+                                mine ? "justify-end" : "justify-start"
+                              }`}
+                            >
+                              <div className="max-w-[88%] sm:max-w-[72%]">
+                                <div
+                                  className="overflow-hidden rounded-2xl shadow-lg"
+                                  style={{
+                                    background: mine
+                                      ? C.orange
+                                      : "#25272B",
+                                    color: mine ? "#17181A" : C.text,
+                                    border: mine
+                                      ? "1px solid rgba(255,255,255,0.08)"
+                                      : `1px solid ${C.border}`,
+                                    borderBottomRightRadius: mine
+                                      ? "5px"
+                                      : undefined,
+                                    borderBottomLeftRadius: !mine
+                                      ? "5px"
+                                      : undefined,
+                                    boxShadow: mine
+                                      ? "0 5px 20px rgba(240,120,50,0.09)"
+                                      : "none",
+                                  }}
+                                >
+                                  {/* IMAGE / GIF */}
+                                  {message.media_url &&
+                                    message.media_type?.startsWith(
+                                      "image/"
+                                    ) && (
+                                      <a
+                                        href={message.media_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block"
+                                      >
+                                        <img
+                                          src={message.media_url}
+                                          alt={
+                                            message.media_name ||
+                                            "Вложение"
+                                          }
+                                          className="max-h-[420px] w-full object-contain"
+                                          loading="lazy"
+                                        />
+                                      </a>
+                                    )}
+
+                                  {/* VIDEO */}
+                                  {message.media_url &&
+                                    message.media_type?.startsWith(
+                                      "video/"
+                                    ) && (
+                                      <video
+                                        src={message.media_url}
+                                        controls
+                                        preload="metadata"
+                                        playsInline
+                                        className="max-h-[420px] w-full bg-black"
+                                      >
+                                        Твой браузер не поддерживает видео.
+                                      </video>
+                                    )}
+
+                                  {/* FILE NAME */}
+                                  {message.media_path && (
+                                    <div
+                                      className="px-3 pt-2 text-xs"
+                                      style={{
+                                        color: mine
+                                          ? "rgba(0,0,0,0.65)"
+                                          : C.muted,
+                                      }}
+                                    >
+                                      {message.media_name ||
+                                        "Вложение"}
+                                    </div>
+                                  )}
+
+                                  {/* TEXT */}
+                                  {message.content?.trim() && (
+                                    <div className="px-4 pt-3">
+                                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                                        {message.content}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* TIME */}
+                                  <div
+                                    className="flex items-center justify-end gap-1.5 px-4 pb-3 pt-2 text-[10px]"
+                                    style={{
+                                      color: mine
+                                        ? "rgba(0,0,0,0.58)"
+                                        : "#92949A",
+                                    }}
+                                  >
+                                    {formatTime(message.created_at)}
+
+                                    {mine && (
+                                      <span className="font-bold">
+                                        {message.is_read ? "✓✓" : "✓"}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {message.media_path &&
+                                  !message.media_url && (
+                                    <p
+                                      className="mt-1 text-[10px]"
+                                      style={{ color: C.muted }}
+                                    >
+                                      Не удалось загрузить вложение.
+                                    </p>
+                                  )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })
+                        );
+                      })}
+                    </>
                   )}
 
                   <div ref={bottomRef} />
                 </div>
 
-                <form
-                  onSubmit={sendMessage}
-                  className="flex gap-2 border-t border-white/10 p-4"
+                {/* MESSAGE INPUT */}
+                <div
+                  className="border-t p-3 sm:p-5"
+                  style={{
+                    background: "#191A1D",
+                    borderColor: C.border,
+                  }}
                 >
-                  <input
-                    value={text}
-                    onChange={(event) => setText(event.target.value)}
-                    maxLength={5000}
-                    placeholder="Напиши сообщение..."
-                    className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#0b0d14] px-4 py-3 text-sm text-white outline-none focus:border-violet-500"
-                  />
+                  {/* FILE PREVIEW */}
+                  {selectedFile && previewUrl && (
+                    <div
+                      className="mb-4 flex items-center gap-3 rounded-xl border p-3"
+                      style={{
+                        background: "#111214",
+                        borderColor: C.border,
+                      }}
+                    >
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-black">
+                        {selectedFile.type.startsWith("image/") ? (
+                          <img
+                            src={previewUrl}
+                            alt="Предпросмотр"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <video
+                            src={previewUrl}
+                            className="h-full w-full object-cover"
+                            muted
+                          />
+                        )}
+                      </div>
 
-                  <button
-                    type="submit"
-                    disabled={!text.trim() || sending}
-                    className="rounded-xl bg-violet-600 px-5 py-3 font-bold transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold">
+                          {selectedFile.name}
+                        </p>
+
+                        <p
+                          className="mt-1 text-xs"
+                          style={{ color: C.muted }}
+                        >
+                          {formatFileSize(selectedFile.size)}
+                        </p>
+
+                        <p
+                          className="mt-1 text-[10px]"
+                          style={{ color: C.orange }}
+                        >
+                          Готово к отправке
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={removeSelectedFile}
+                        disabled={sending}
+                        aria-label="Отменить вложение"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg transition hover:bg-white/10 disabled:opacity-40"
+                        style={{ color: "#F87171" }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+
+                  <form
+                    onSubmit={sendMessage}
+                    className="flex items-center gap-2 sm:gap-3"
                   >
-                    {sending ? "..." : "➤"}
-                  </button>
-                </form>
+                    {/* HIDDEN FILE INPUT */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+
+                    {/* ATTACHMENT BUTTON */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={sending || !!selectedFile}
+                      aria-label="Прикрепить фотографию, видео или GIF"
+                      title="Прикрепить файл"
+                      className="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-xl border text-xl transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{
+                        borderColor: C.border,
+                        color: C.orange,
+                      }}
+                    >
+                      +
+                    </button>
+
+                    <input
+                      value={text}
+                      onChange={(event) => setText(event.target.value)}
+                      maxLength={5000}
+                      placeholder="Напиши сообщение..."
+                      aria-label="Текст сообщения"
+                      className="min-w-0 flex-1 rounded-xl border px-4 py-3.5 text-sm outline-none transition placeholder:text-[#696B70] focus:border-[#F07832]"
+                      style={{
+                        background: "#111214",
+                        borderColor: C.border,
+                        color: C.text,
+                      }}
+                    />
+
+                    <button
+                      type="submit"
+                      disabled={
+                        (!text.trim() && !selectedFile) || sending
+                      }
+                      aria-label="Отправить сообщение"
+                      className="flex h-[48px] w-[52px] shrink-0 items-center justify-center rounded-xl text-xl font-black text-black transition hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{
+                        background: C.orange,
+                        boxShadow: "0 5px 20px rgba(240,120,50,0.15)",
+                      }}
+                    >
+                      {sending ? "..." : "➤"}
+                    </button>
+                  </form>
+
+                  <div className="mt-2 flex flex-wrap justify-between gap-2 px-1">
+                    <span className="text-[10px]" style={{ color: C.muted }}>
+                      Фото, видео и GIF · до 50 МБ
+                    </span>
+
+                    <span className="text-[10px]" style={{ color: C.muted }}>
+                      {text.length}/5000
+                    </span>
+                  </div>
+                </div>
               </>
             ) : (
               <div className="flex flex-1 items-center justify-center p-6 text-center">
                 <div>
-                  <div className="text-5xl">💬</div>
-                  <h2 className="mt-4 text-xl font-bold">
+                  <div
+                    className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl text-4xl"
+                    style={{
+                      background: "rgba(240,120,50,0.1)",
+                      color: C.orange,
+                    }}
+                  >
+                    ✉
+                  </div>
+
+                  <h2 className="mt-5 text-xl font-black">
                     Выбери собеседника
                   </h2>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Выбери друга слева, чтобы открыть переписку.
+
+                  <p
+                    className="mt-2 max-w-xs text-sm"
+                    style={{ color: C.muted }}
+                  >
+                    Выбери друга слева, чтобы открыть личную переписку.
                   </p>
                 </div>
               </div>
             )}
           </section>
         </div>
+
+        {/* FOOTER */}
+        <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 py-4">
+          <p className="text-xs" style={{ color: "#66686D" }}>
+            © 2026 VEXORA
+          </p>
+
+          <p
+            className="text-xs font-bold tracking-widest"
+            style={{ color: C.muted }}
+          >
+            ENTER THE GAME.
+          </p>
+        </footer>
       </div>
     </main>
   );
