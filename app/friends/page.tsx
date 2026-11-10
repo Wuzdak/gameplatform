@@ -22,6 +22,22 @@ type FriendEntry = {
 
 type PresenceStatus = "online" | "do_not_disturb";
 
+type PresenceUpdate = {
+  user_id?: string;
+  presence_status?: string;
+  last_seen?: string | null;
+};
+
+const C = {
+  bg: "#111214",
+  surface: "#1B1D20",
+  surface2: "#242629",
+  border: "#303236",
+  orange: "#F07832",
+  text: "#E7E7E7",
+  muted: "#92949A",
+};
+
 function getPresence(entry: FriendEntry) {
   if (!entry.last_seen) return "offline";
 
@@ -92,6 +108,10 @@ export default function FriendsPage() {
   const [searching, setSearching] = useState(false);
   const [myPresence, setMyPresence] = useState<PresenceStatus>("online");
 
+  // Нужен только для пересчёта времени последней активности.
+  // Запросов к базе данных этот таймер не выполняет.
+  const [, setPresenceTick] = useState(0);
+
   const loadFriends = useCallback(async () => {
     const { data, error } = await supabase.rpc("get_friend_data");
 
@@ -111,8 +131,10 @@ export default function FriendsPage() {
     }
   }, []);
 
+  // Инициализация и подписка Realtime
   useEffect(() => {
     let active = true;
+    let presenceChannel: ReturnType<typeof supabase.channel> | null = null;
 
     async function initialize() {
       const { data, error } = await supabase.auth.getUser();
@@ -124,24 +146,96 @@ export default function FriendsPage() {
         return;
       }
 
-      setUserId(data.user.id);
+      const currentUserId = data.user.id;
+
+      setUserId(currentUserId);
+
+      // Подписываемся на изменения статусов
+      // до первоначальной загрузки списка друзей.
+      presenceChannel = supabase
+        .channel(`user-presence-${currentUserId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "user_presence",
+          },
+          (payload) => {
+            if (!active || payload.eventType === "DELETE") return;
+
+            const record = payload.new as PresenceUpdate;
+
+            if (!record.user_id) return;
+
+            const status: PresenceStatus =
+              record.presence_status === "do_not_disturb"
+                ? "do_not_disturb"
+                : "online";
+
+            const lastSeen =
+              typeof record.last_seen === "string"
+                ? record.last_seen
+                : null;
+
+            // Обновляем собственный статус
+            if (record.user_id === currentUserId) {
+              setMyPresence(status);
+            }
+
+            // Обновляем только нужного друга
+            setFriendsData((current) =>
+              current.map((entry) =>
+                entry.friend_id === record.user_id
+                  ? {
+                      ...entry,
+                      presence_status: status,
+                      last_seen: lastSeen,
+                    }
+                  : entry
+              )
+            );
+          }
+        )
+        .subscribe((status) => {
+          if (!active) return;
+
+          if (
+            status === "CHANNEL_ERROR" ||
+            status === "TIMED_OUT"
+          ) {
+            setMessage(
+              "Проблема с подключением Realtime. Проверь соединение."
+            );
+          }
+        });
 
       await Promise.all([loadFriends(), loadMyPresence()]);
 
-      if (active) setLoading(false);
+      if (active) {
+        setLoading(false);
+      }
     }
 
     initialize();
 
-    const interval = setInterval(() => {
-      loadFriends();
-    }, 30000);
-
     return () => {
       active = false;
-      clearInterval(interval);
+
+      if (presenceChannel) {
+        void supabase.removeChannel(presenceChannel);
+      }
     };
   }, [loadFriends, loadMyPresence]);
+
+  // Пересчитываем онлайн/оффлайн без запросов к серверу
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPresenceTick((value) => value + 1);
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   async function changePresence(value: PresenceStatus) {
     setBusyId("presence");
@@ -155,11 +249,13 @@ export default function FriendsPage() {
       setMessage("Не удалось изменить статус: " + error.message);
     } else {
       setMyPresence(value);
+
       setMessage(
         value === "online"
           ? "Твой статус изменён на «В сети»."
           : "Включён режим «Не беспокоить»."
       );
+
       await loadFriends();
     }
 
@@ -210,9 +306,11 @@ export default function FriendsPage() {
       setMessage("Не удалось отправить заявку: " + error.message);
     } else {
       setMessage("Заявка успешно отправлена!");
+
       setSearchResults((current) =>
         current.filter((profile) => profile.user_id !== targetUserId)
       );
+
       await loadFriends();
     }
 
@@ -237,6 +335,7 @@ export default function FriendsPage() {
       setMessage(
         accept ? "Заявка принята! Теперь вы друзья." : "Заявка отклонена."
       );
+
       await loadFriends();
     }
 
@@ -284,7 +383,10 @@ export default function FriendsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#0b0d14] text-white">
+      <main
+        className="flex min-h-screen items-center justify-center text-white"
+        style={{ background: C.bg }}
+      >
         Загрузка друзей...
       </main>
     );
@@ -292,13 +394,22 @@ export default function FriendsPage() {
 
   if (!userId) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#0b0d14] px-5 text-white">
+      <main
+        className="flex min-h-screen items-center justify-center px-5 text-white"
+        style={{ background: C.bg }}
+      >
         <div className="text-center">
           <div className="text-5xl">👤</div>
+
           <h1 className="mt-5 text-2xl font-bold">
             Ты не авторизован
           </h1>
-          <a href="/auth" className="mt-4 block text-violet-400">
+
+          <a
+            href="/auth"
+            className="mt-4 block font-semibold transition hover:brightness-125"
+            style={{ color: C.orange }}
+          >
             Перейти ко входу
           </a>
         </div>
@@ -307,72 +418,132 @@ export default function FriendsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0d14] px-5 py-10 text-white">
+    <main
+      className="min-h-screen px-5 py-10 text-white"
+      style={{ background: C.bg }}
+    >
       <div className="mx-auto max-w-4xl">
-        <a href="/" className="text-2xl font-black">
-          Game<span className="text-violet-400">Platform</span>
+        {/* LOGO */}
+        <a
+          href="/"
+          className="inline-flex items-center gap-3 text-2xl font-black tracking-wide"
+        >
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-black"
+            style={{
+              background: C.orange,
+              boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
+            }}
+          >
+            V
+          </span>
+
+          <span>
+            VEX<span style={{ color: C.orange }}>ORA</span>
+          </span>
         </a>
 
+        {/* PAGE HEADER */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black">Мои друзья</h1>
-            <p className="mt-2 text-gray-400">
+            <p
+              className="mb-2 text-xs font-black uppercase tracking-[0.25em]"
+              style={{ color: C.orange }}
+            >
+              YOUR COMMUNITY
+            </p>
+
+            <h1 className="text-3xl font-black">
+              Мои друзья
+            </h1>
+
+            <p className="mt-2 text-sm" style={{ color: C.muted }}>
               Находи игроков и общайся с ними.
             </p>
           </div>
 
           <a
             href="/profile"
-            className="rounded-xl border border-white/10 px-4 py-2 text-sm text-gray-300 transition hover:bg-white/10"
+            className="rounded-xl border px-4 py-2 text-sm transition hover:bg-white/5"
+            style={{
+              borderColor: C.border,
+              color: C.text,
+            }}
           >
             ← Мой профиль
           </a>
         </div>
 
-        {/* Мой статус */}
-        <section className="mt-8 rounded-2xl border border-white/10 bg-[#121622] p-6">
-          <h2 className="text-xl font-bold">Мой статус</h2>
+        {/* MY STATUS */}
+        <section
+          className="mt-8 rounded-2xl border p-6"
+          style={{
+            background: C.surface,
+            borderColor: C.border,
+          }}
+        >
+          <h2 className="text-xl font-bold">
+            Мой статус
+          </h2>
 
-          <p className="mt-2 text-sm text-gray-400">
+          <p className="mt-2 text-sm" style={{ color: C.muted }}>
             Выбери, какой статус будут видеть другие пользователи.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={() => changePresence("online")}
               disabled={busyId === "presence"}
-              className={`rounded-xl border px-5 py-3 font-bold transition ${
+              className={`rounded-xl border px-5 py-3 font-bold transition disabled:opacity-50 ${
                 myPresence === "online"
                   ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-300"
-                  : "border-white/10 bg-[#0b0d14] text-gray-400 hover:bg-white/5"
-              } disabled:opacity-50`}
+                  : "border-white/10 bg-[#111214] text-gray-400 hover:bg-white/5"
+              }`}
             >
               🟢 В сети
             </button>
 
             <button
+              type="button"
               onClick={() => changePresence("do_not_disturb")}
               disabled={busyId === "presence"}
-              className={`rounded-xl border px-5 py-3 font-bold transition ${
+              className={`rounded-xl border px-5 py-3 font-bold transition disabled:opacity-50 ${
                 myPresence === "do_not_disturb"
                   ? "border-red-400/50 bg-red-500/15 text-red-300"
-                  : "border-white/10 bg-[#0b0d14] text-gray-400 hover:bg-white/5"
-              } disabled:opacity-50`}
+                  : "border-white/10 bg-[#111214] text-gray-400 hover:bg-white/5"
+              }`}
             >
               🔴 Не беспокоить
             </button>
           </div>
         </section>
 
+        {/* MESSAGE */}
         {message && (
-          <div className="mt-6 rounded-xl border border-violet-400/20 bg-violet-500/10 p-4 text-sm text-violet-200">
+          <div
+            className="mt-6 rounded-xl border p-4 text-sm"
+            style={{
+              borderColor: "rgba(240,120,50,0.25)",
+              background: "rgba(240,120,50,0.08)",
+              color: "#FFD0AE",
+            }}
+          >
             {message}
           </div>
         )}
 
-        {/* Поиск */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-[#121622] p-6">
-          <h2 className="text-xl font-bold">🔎 Поиск пользователей</h2>
+        {/* SEARCH */}
+        <section
+          className="mt-6 rounded-2xl border p-6"
+          style={{
+            background: C.surface,
+            borderColor: C.border,
+          }}
+        >
+          <h2 className="text-xl font-bold">
+            <span style={{ color: C.orange }}>⌕</span> Поиск пользователей
+          </h2>
 
           <form
             onSubmit={searchUsers}
@@ -382,13 +553,18 @@ export default function FriendsPage() {
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Введи имя пользователя..."
-              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#0b0d14] px-4 py-3 text-white outline-none focus:border-violet-500"
+              className="min-w-0 flex-1 rounded-xl border px-4 py-3 text-white outline-none transition focus:border-orange-500"
+              style={{
+                background: C.bg,
+                borderColor: C.border,
+              }}
             />
 
             <button
               type="submit"
               disabled={searching}
-              className="rounded-xl bg-violet-600 px-6 py-3 font-bold hover:bg-violet-500 disabled:opacity-50"
+              className="rounded-xl px-6 py-3 font-bold text-black transition hover:brightness-110 disabled:opacity-50"
+              style={{ background: C.orange }}
             >
               {searching ? "Поиск..." : "Найти"}
             </button>
@@ -399,21 +575,33 @@ export default function FriendsPage() {
               {searchResults.map((profile) => (
                 <div
                   key={profile.user_id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0b0d14] p-4"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
+                  style={{
+                    background: C.bg,
+                    borderColor: C.border,
+                  }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-600/20 text-xl">
+                    <div
+                      className="flex h-11 w-11 items-center justify-center rounded-full text-xl"
+                      style={{
+                        background: "rgba(240,120,50,0.12)",
+                      }}
+                    >
                       👤
                     </div>
+
                     <span className="font-bold">
                       {profile.full_name || "Игрок"}
                     </span>
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => sendRequest(profile.user_id)}
                     disabled={busyId === profile.user_id}
-                    className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-bold hover:bg-violet-500 disabled:opacity-50"
+                    className="rounded-lg px-4 py-2 text-sm font-bold text-black transition hover:brightness-110 disabled:opacity-50"
+                    style={{ background: C.orange }}
                   >
                     {busyId === profile.user_id
                       ? "Отправка..."
@@ -425,14 +613,20 @@ export default function FriendsPage() {
           )}
         </section>
 
-        {/* Входящие заявки */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-[#121622] p-6">
+        {/* INCOMING REQUESTS */}
+        <section
+          className="mt-6 rounded-2xl border p-6"
+          style={{
+            background: C.surface,
+            borderColor: C.border,
+          }}
+        >
           <h2 className="text-xl font-bold">
             📩 Входящие заявки ({incoming.length})
           </h2>
 
           {incoming.length === 0 ? (
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm" style={{ color: C.muted }}>
               Пока нет новых заявок.
             </p>
           ) : (
@@ -440,7 +634,8 @@ export default function FriendsPage() {
               {incoming.map((entry) => (
                 <div
                   key={entry.request_id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#0b0d14] p-4"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl p-4"
+                  style={{ background: C.bg }}
                 >
                   <span className="font-bold">
                     {entry.full_name || "Игрок"}
@@ -448,21 +643,23 @@ export default function FriendsPage() {
 
                   <div className="flex gap-2">
                     <button
+                      type="button"
                       onClick={() =>
                         respondToRequest(entry.request_id, true)
                       }
                       disabled={busyId === entry.request_id}
-                      className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold hover:bg-emerald-500 disabled:opacity-50"
+                      className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold transition hover:bg-emerald-500 disabled:opacity-50"
                     >
                       Принять
                     </button>
 
                     <button
+                      type="button"
                       onClick={() =>
                         respondToRequest(entry.request_id, false)
                       }
                       disabled={busyId === entry.request_id}
-                      className="rounded-lg bg-red-600/80 px-3 py-2 text-sm font-bold hover:bg-red-500 disabled:opacity-50"
+                      className="rounded-lg bg-red-600/80 px-3 py-2 text-sm font-bold transition hover:bg-red-500 disabled:opacity-50"
                     >
                       Отклонить
                     </button>
@@ -473,14 +670,20 @@ export default function FriendsPage() {
           )}
         </section>
 
-        {/* Отправленные заявки */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-[#121622] p-6">
+        {/* OUTGOING REQUESTS */}
+        <section
+          className="mt-6 rounded-2xl border p-6"
+          style={{
+            background: C.surface,
+            borderColor: C.border,
+          }}
+        >
           <h2 className="text-xl font-bold">
             📤 Отправленные заявки ({outgoing.length})
           </h2>
 
           {outgoing.length === 0 ? (
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm" style={{ color: C.muted }}>
               Ты пока никому не отправлял заявки.
             </p>
           ) : (
@@ -488,11 +691,13 @@ export default function FriendsPage() {
               {outgoing.map((entry) => (
                 <div
                   key={entry.request_id}
-                  className="flex items-center justify-between gap-3 rounded-xl bg-[#0b0d14] p-4"
+                  className="flex items-center justify-between gap-3 rounded-xl p-4"
+                  style={{ background: C.bg }}
                 >
                   <span className="font-bold">
                     {entry.full_name || "Игрок"}
                   </span>
+
                   <span className="text-sm text-amber-400">
                     Ожидает ответа
                   </span>
@@ -502,14 +707,20 @@ export default function FriendsPage() {
           )}
         </section>
 
-        {/* Друзья */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-[#121622] p-6">
+        {/* FRIENDS */}
+        <section
+          className="mt-6 rounded-2xl border p-6"
+          style={{
+            background: C.surface,
+            borderColor: C.border,
+          }}
+        >
           <h2 className="text-xl font-bold">
             👥 Список друзей ({friends.length})
           </h2>
 
           {friends.length === 0 ? (
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm" style={{ color: C.muted }}>
               Здесь пока никого нет. Найди игроков и отправь им заявку!
             </p>
           ) : (
@@ -517,22 +728,30 @@ export default function FriendsPage() {
               {friends.map((entry) => (
                 <div
                   key={entry.request_id}
-                  className="rounded-xl bg-[#0b0d14] p-4"
+                  className="rounded-xl p-4"
+                  style={{ background: C.bg }}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/15">
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+                        style={{
+                          background: "rgba(240,120,50,0.12)",
+                        }}
+                      >
                         👤
                       </div>
+
                       <span className="truncate font-bold">
                         {entry.full_name || "Игрок"}
                       </span>
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => removeFriend(entry.friend_id)}
                       disabled={busyId === entry.friend_id}
-                      className="shrink-0 rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+                      className="shrink-0 rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
                     >
                       {busyId === entry.friend_id
                         ? "Удаление..."
@@ -542,6 +761,7 @@ export default function FriendsPage() {
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                     <PresenceLabel entry={entry} />
+
                     <span className="text-xs text-gray-500">
                       {getPresence(entry) === "offline"
                         ? formatLastSeen(entry.last_seen)
@@ -554,12 +774,31 @@ export default function FriendsPage() {
           )}
         </section>
 
+        {/* BACK TO STORE */}
         <a
           href="/"
-          className="mt-8 block text-center text-sm text-gray-500 hover:text-white"
+          className="mt-8 block text-center text-sm transition hover:text-white"
+          style={{ color: C.muted }}
         >
           ← Вернуться в магазин
         </a>
+
+        {/* FOOTER */}
+        <footer
+          className="mt-12 border-t pt-6 text-center"
+          style={{ borderColor: C.border }}
+        >
+          <p className="text-xs font-black tracking-widest">
+            VEX<span style={{ color: C.orange }}>ORA</span>
+          </p>
+
+          <p
+            className="mt-2 text-[10px] font-semibold tracking-[0.2em]"
+            style={{ color: C.muted }}
+          >
+            ENTER THE GAME.
+          </p>
+        </footer>
       </div>
     </main>
   );

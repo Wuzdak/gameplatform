@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 
@@ -12,8 +12,8 @@ type Game = {
   genre: string;
   price: number;
   image_url: string | null;
-  screenshots: string[];
-  system_requirements: string;
+  screenshots: string[] | null;
+  system_requirements: string | null;
 };
 
 type Review = {
@@ -25,6 +25,12 @@ type Review = {
   created_at: string;
 };
 
+function formatPrice(price: number) {
+  return Number(price) === 0
+    ? "Бесплатно"
+    : `${Number(price).toLocaleString("ru-RU")} ₽`;
+}
+
 function GamePageContent() {
   const params = useParams<{ id: string }>();
   const gameId = params.id;
@@ -32,31 +38,51 @@ function GamePageContent() {
   const [game, setGame] = useState<Game | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [reviewError, setReviewError] = useState("");
+
+  const [adding, setAdding] = useState(false);
+  const [inLibrary, setInLibrary] = useState(false);
+  const [message, setMessage] = useState("");
+
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
   const [savingReview, setSavingReview] = useState(false);
   const [reviewMessage, setReviewMessage] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [message, setMessage] = useState("");
+  const [reviewError, setReviewError] = useState("");
+
+  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadPage() {
       setLoading(true);
       setError("");
       setReviewError("");
+      setMessage("");
+      setInLibrary(false);
 
       const { data: userData } = await supabase.auth.getUser();
-      setUserId(userData.user?.id ?? null);
+      const currentUserId = userData.user?.id ?? null;
+
+      if (cancelled) return;
+
+      setUserId(currentUserId);
 
       const { data: gameData, error: gameError } = await supabase
         .from("games")
-        .select("id, title, description, genre, price, image_url, screenshots, system_requirements")
+        .select(
+          "id, title, description, genre, price, image_url, screenshots, system_requirements"
+        )
         .eq("id", gameId)
         .eq("is_published", true)
         .maybeSingle();
+
+      if (cancelled) return;
 
       if (gameError) {
         setError("Не удалось загрузить игру: " + gameError.message);
@@ -72,36 +98,62 @@ function GamePageContent() {
 
       setGame(gameData);
 
+      if (currentUserId) {
+        const { data: libraryData } = await supabase
+          .from("user_library")
+          .select("game_title")
+          .eq("user_id", currentUserId)
+          .eq("game_title", gameData.title)
+          .limit(1);
+
+        if (cancelled) return;
+
+        setInLibrary(Boolean(libraryData && libraryData.length > 0));
+      }
+
       const { data: reviewData, error: reviewsLoadError } = await supabase
         .from("game_reviews")
         .select("*")
         .eq("game_id", gameId)
         .order("created_at", { ascending: false });
 
+      if (cancelled) return;
+
       if (reviewsLoadError) {
-        setReviewError("Не удалось загрузить отзывы: " + reviewsLoadError.message);
+        setReviewError(
+          "Не удалось загрузить отзывы: " + reviewsLoadError.message
+        );
       } else {
         const loadedReviews = reviewData ?? [];
         setReviews(loadedReviews);
 
         const ownReview = loadedReviews.find(
-          (review) => review.user_id === userData.user?.id
+          (review) => review.user_id === currentUserId
         );
 
         if (ownReview) {
           setRating(String(ownReview.rating));
-          setComment(ownReview.comment);
+          setComment(ownReview.comment ?? "");
+        } else {
+          setRating("5");
+          setComment("");
         }
       }
 
       setLoading(false);
     }
 
-    if (gameId) loadPage();
+    if (gameId) {
+      loadPage();
+    }
+
+    return () => {
+      cancelled = true;
+    };
   }, [gameId]);
 
   async function addToLibrary() {
-    if (!game) return;
+    if (!game || adding || inLibrary) return;
 
     setAdding(true);
     setMessage("");
@@ -114,30 +166,52 @@ function GamePageContent() {
         return;
       }
 
+      const currentUserId = data.user.id;
+
+      const { data: existingGame, error: checkError } = await supabase
+        .from("user_library")
+        .select("game_title")
+        .eq("user_id", currentUserId)
+        .eq("game_title", game.title)
+        .limit(1);
+
+      if (checkError) {
+        setMessage("Не удалось проверить библиотеку: " + checkError.message);
+        return;
+      }
+
+      if (existingGame && existingGame.length > 0) {
+        setInLibrary(true);
+        setMessage("Эта игра уже есть в твоей библиотеке.");
+        return;
+      }
+
       const { error } = await supabase.from("user_library").insert({
-        user_id: data.user.id,
+        user_id: currentUserId,
         game_title: game.title,
         genre: game.genre,
         image_url: game.image_url,
       });
 
       if (error) {
-        setMessage(
-          error.code === "23505"
-            ? "Эта игра уже есть в библиотеке."
-            : "Ошибка: " + error.message
-        );
+        if (error.code === "23505") {
+          setInLibrary(true);
+          setMessage("Эта игра уже есть в твоей библиотеке.");
+        } else {
+          setMessage("Не удалось добавить игру: " + error.message);
+        }
       } else {
+        setInLibrary(true);
         setMessage("Игра успешно добавлена в библиотеку!");
       }
     } catch {
-      setMessage("Не удалось выполнить запрос.");
+      setMessage("Не удалось выполнить запрос. Попробуй ещё раз.");
     } finally {
       setAdding(false);
     }
   }
 
-  async function saveReview(event: React.FormEvent<HTMLFormElement>) {
+  async function saveReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!game) return;
@@ -146,6 +220,11 @@ function GamePageContent() {
 
     if (!userId) {
       window.location.href = "/auth";
+      return;
+    }
+
+    if (!comment.trim()) {
+      setReviewMessage("Напиши несколько слов о своих впечатлениях.");
       return;
     }
 
@@ -172,7 +251,8 @@ function GamePageContent() {
         data,
         ...previous.filter((review) => review.user_id !== userId),
       ]);
-      setReviewMessage("Твой отзыв сохранён!");
+
+      setReviewMessage("Твой отзыв успешно сохранён!");
     }
 
     setSavingReview(false);
@@ -184,159 +264,302 @@ function GamePageContent() {
         reviews.length
       : 0;
 
+  const roundedRating = Math.round(averageRating);
+
   return (
-    <main className="min-h-screen bg-[#0b0d14] text-white">
-      <header className="border-b border-white/10 bg-[#10131d]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <a href="/" className="text-2xl font-black">
-            Game<span className="text-violet-400">Platform</span>
+    <main className="min-h-screen bg-[#111214] text-[#E7E7E7]">
+      {/* HEADER */}
+      <header className="sticky top-0 z-40 border-b border-[#303236] bg-[#111214]/95 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <a href="/" className="flex shrink-0 items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F07832] text-lg font-black text-white">
+              V
+            </span>
+            <span className="text-2xl font-black tracking-tight">
+              VEXORA
+            </span>
           </a>
+
+          <nav className="hidden items-center gap-7 text-sm text-[#92949A] md:flex">
+            <a href="/" className="transition hover:text-[#F07832]">
+              Главная
+            </a>
+            <a href="/library" className="transition hover:text-[#F07832]">
+              Библиотека
+            </a>
+            <a href="/profile" className="transition hover:text-[#F07832]">
+              Профиль
+            </a>
+          </nav>
 
           <a
             href="/library"
-            className="rounded-xl border border-white/10 px-4 py-2 text-sm hover:bg-white/10"
+            className="rounded-lg border border-[#303236] bg-[#1B1D20] px-4 py-2.5 text-sm font-semibold transition hover:border-[#F07832]/50 hover:bg-[#242629]"
           >
             Моя библиотека
           </a>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <a href="/" className="text-sm text-violet-400 hover:text-violet-300">
-          ← Вернуться в каталог
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
+        <a
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-[#92949A] transition hover:text-[#F07832]"
+        >
+          <span>←</span>
+          Вернуться в каталог
         </a>
 
         {loading && (
-          <p className="mt-12 text-center">Загружаем информацию об игре...</p>
+          <div className="flex min-h-[450px] flex-col items-center justify-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#303236] border-t-[#F07832]" />
+            <p className="text-sm text-[#92949A]">
+              Загружаем информацию об игре...
+            </p>
+          </div>
         )}
 
         {!loading && error && (
-          <p className="mt-12 rounded-xl bg-red-500/10 p-6 text-red-300">
-            {error}
-          </p>
+          <div className="mt-10 rounded-2xl border border-red-500/20 bg-red-500/5 p-8 text-center">
+            <div className="mb-4 text-4xl">⚠️</div>
+            <h2 className="text-xl font-bold">Не удалось открыть игру</h2>
+            <p className="mt-3 text-sm text-red-300">{error}</p>
+            <a
+              href="/"
+              className="mt-6 inline-flex rounded-lg bg-[#F07832] px-6 py-3 font-bold text-white transition hover:bg-[#db6828]"
+            >
+              Вернуться на главную
+            </a>
+          </div>
         )}
 
         {!loading && game && (
           <>
-            <section className="mt-8 grid gap-10 md:grid-cols-2">
-              <div
-                className="flex min-h-80 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-950 via-violet-900 to-cyan-900"
-                style={
-                  game.image_url
-                    ? {
-                        backgroundImage: `url("${game.image_url}")`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }
-                    : undefined
-                }
-              >
-                {!game.image_url && <span className="text-9xl">🎮</span>}
+            {/* GAME HERO */}
+            <section className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12">
+              <div className="relative min-h-[280px] overflow-hidden rounded-2xl border border-[#303236] bg-gradient-to-br from-[#3b2419] via-[#242629] to-[#111214] sm:min-h-[420px]">
+                {game.image_url ? (
+                  <img
+                    src={game.image_url}
+                    alt={game.title}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-8xl">🎮</span>
+                  </div>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
+
+                <div className="absolute bottom-5 left-5 right-5">
+                  <span className="rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur">
+                    {game.genre || "Игра"}
+                  </span>
+                </div>
               </div>
 
+              {/* GAME INFO */}
               <div className="flex flex-col justify-center">
-                <p className="font-bold uppercase tracking-widest text-violet-400">
-                  {game.genre}
-                </p>
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <span className="rounded-md bg-[#F07832]/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#F07832]">
+                    VEXORA GAME
+                  </span>
 
-                <h1 className="mt-4 text-4xl font-black md:text-5xl">
+                  {inLibrary && (
+                    <span className="rounded-md bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-400">
+                      В библиотеке
+                    </span>
+                  )}
+                </div>
+
+                <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
                   {game.title}
                 </h1>
 
-                <div className="mt-4 flex items-center gap-3">
-                  <span className="text-2xl text-yellow-400">
-                    {"★".repeat(Math.round(averageRating))}
-                    {"☆".repeat(5 - Math.round(averageRating))}
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <span className="text-2xl tracking-wider text-[#F07832]">
+                    {"★".repeat(roundedRating)}
+                    {"☆".repeat(5 - roundedRating)}
                   </span>
-                  <span className="text-sm text-gray-400">
+
+                  <span className="text-sm text-[#92949A]">
                     {reviews.length > 0
                       ? `${averageRating.toFixed(1)} из 5 · ${reviews.length} отзывов`
                       : "Пока нет оценок"}
                   </span>
                 </div>
 
-                <p className="mt-6 whitespace-pre-wrap leading-8 text-gray-400">
-                  {game.description || "Описание игры пока не добавлено."}
-                </p>
+                <div className="mt-7">
+                  <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-[#92949A]">
+                    Об игре
+                  </h2>
 
-                <div className="mt-8">
-                  <p className="text-sm text-gray-400">Стоимость</p>
-                  <p className="mt-1 text-3xl font-black">
-                    {Number(game.price) === 0
-                      ? "Бесплатно"
-                      : `${Number(game.price).toLocaleString("ru-RU")} ₽`}
+                  <p className="whitespace-pre-wrap text-sm leading-7 text-[#B8BAC0]">
+                    {game.description || "Описание игры пока не добавлено."}
                   </p>
                 </div>
 
-                <button
-                  onClick={addToLibrary}
-                  disabled={adding}
-                  className="mt-8 rounded-xl bg-violet-600 px-6 py-4 font-bold transition hover:bg-violet-500 disabled:opacity-50"
-                >
-                  {adding ? "Добавление..." : "Добавить в библиотеку"}
-                </button>
+                {/* LIBRARY PANEL */}
+                <div className="mt-8 rounded-2xl border border-[#303236] bg-[#1B1D20] p-5 sm:p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-[#92949A]">
+                        Стоимость
+                      </p>
 
-                {message && (
-                  <p className="mt-4 rounded-xl bg-white/5 p-4 text-sm text-violet-300">
-                    {message}
+                      <p className="mt-1 text-3xl font-black text-white">
+                        {formatPrice(game.price)}
+                      </p>
+                    </div>
+
+                    <span className="text-2xl">🎮</span>
+                  </div>
+
+                  <button
+                    onClick={addToLibrary}
+                    disabled={adding || inLibrary}
+                    className={`mt-5 w-full rounded-xl px-6 py-4 font-bold transition ${
+                      inLibrary
+                        ? "cursor-default border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                        : "bg-[#F07832] text-white shadow-lg shadow-[#F07832]/10 hover:bg-[#db6828] disabled:cursor-wait disabled:opacity-60"
+                    }`}
+                  >
+                    {adding
+                      ? "Добавление..."
+                      : inLibrary
+                        ? "✓ Уже в библиотеке"
+                        : game.price === 0
+                          ? "Получить бесплатно"
+                          : "Добавить в библиотеку"}
+                  </button>
+
+                  {message && (
+                    <p className="mt-4 rounded-lg border border-[#303236] bg-[#242629] p-3 text-sm text-[#E7E7E7]">
+                      {message}
+                    </p>
+                  )}
+
+                  <p className="mt-4 text-center text-xs text-[#92949A]">
+                    {inLibrary
+                      ? "Игра доступна в твоей библиотеке."
+                      : "Добавь игру в свою библиотеку VEXORA."}
                   </p>
-                )}
+                </div>
               </div>
             </section>
 
-            {game.screenshots?.length > 0 && (
+            {/* SCREENSHOTS */}
+            {game.screenshots && game.screenshots.length > 0 && (
               <section className="mt-16">
-                <h2 className="mb-6 text-2xl font-black">Скриншоты игры</h2>
+                <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">
+                      Галерея
+                    </p>
+                    <h2 className="mt-2 text-2xl font-black">
+                      Скриншоты игры
+                    </h2>
+                  </div>
 
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  <span className="text-sm text-[#92949A]">
+                    {game.screenshots.length} изображений
+                  </span>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {game.screenshots.map((url, index) => (
-                    <img
+                    <button
                       key={`${url}-${index}`}
-                      src={url}
-                      alt={`Скриншот ${index + 1} игры ${game.title}`}
-                      className="h-52 w-full rounded-2xl border border-white/10 object-cover"
-                    />
+                      type="button"
+                      onClick={() => setSelectedScreenshot(url)}
+                      className="group relative overflow-hidden rounded-xl border border-[#303236] bg-[#1B1D20] text-left"
+                    >
+                      <img
+                        src={url}
+                        alt={`Скриншот ${index + 1} игры ${game.title}`}
+                        className="h-52 w-full object-cover transition duration-300 group-hover:scale-105"
+                      />
+
+                      <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/15" />
+                    </button>
                   ))}
                 </div>
               </section>
             )}
 
+            {/* SYSTEM REQUIREMENTS */}
             <section className="mt-16">
-              <h2 className="mb-6 text-2xl font-black">
-                Системные требования
-              </h2>
-
-              <div className="rounded-2xl border border-white/10 bg-[#121622] p-6">
-                <p className="whitespace-pre-wrap leading-8 text-gray-300">
-                  {game.system_requirements ||
-                    "Системные требования пока не добавлены."}
+              <div className="mb-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">
+                  Информация
                 </p>
+                <h2 className="mt-2 text-2xl font-black">
+                  Системные требования
+                </h2>
+              </div>
+
+              <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-6 sm:p-8">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F07832]/10 text-xl">
+                    💻
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold">Конфигурация компьютера</h3>
+                    <p className="mt-1 text-xs text-[#92949A]">
+                      Требования для запуска игры
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-[#303236] pt-5">
+                  <p className="whitespace-pre-wrap text-sm leading-8 text-[#B8BAC0]">
+                    {game.system_requirements ||
+                      "Системные требования пока не добавлены."}
+                  </p>
+                </div>
               </div>
             </section>
 
+            {/* REVIEWS */}
             <section className="mt-16">
-              <h2 className="mb-6 text-2xl font-black">
-                Отзывы игроков ({reviews.length})
-              </h2>
+              <div className="mb-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">
+                  Сообщество
+                </p>
+                <h2 className="mt-2 text-2xl font-black">
+                  Отзывы игроков
+                  <span className="ml-2 text-[#92949A]">
+                    ({reviews.length})
+                  </span>
+                </h2>
+              </div>
 
               <form
                 onSubmit={saveReview}
-                className="mb-8 rounded-2xl border border-white/10 bg-[#121622] p-6"
+                className="mb-8 rounded-2xl border border-[#303236] bg-[#1B1D20] p-5 sm:p-7"
               >
-                <h3 className="text-lg font-bold">
-                  {reviews.some((review) => review.user_id === userId)
-                    ? "Изменить свой отзыв"
-                    : "Оставить отзыв"}
-                </h3>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-lg font-bold">
+                    {reviews.some((review) => review.user_id === userId)
+                      ? "Изменить свой отзыв"
+                      : "Оставить отзыв"}
+                  </h3>
 
-                <label className="mt-5 block text-sm text-gray-400">
+                  <span className="rounded-md bg-[#F07832]/10 px-3 py-1.5 text-xs font-bold text-[#F07832]">
+                    Ваше мнение важно
+                  </span>
+                </div>
+
+                <label className="mt-6 block text-sm font-semibold text-[#B8BAC0]">
                   Твоя оценка
                 </label>
 
                 <select
                   value={rating}
                   onChange={(event) => setRating(event.target.value)}
-                  className="mt-2 rounded-xl border border-white/10 bg-[#1b2030] px-4 py-3 text-white"
+                  className="mt-3 w-full max-w-xs rounded-xl border border-[#303236] bg-[#242629] px-4 py-3 text-sm text-white outline-none transition focus:border-[#F07832]"
                 >
                   <option value="5">★★★★★ — Отлично</option>
                   <option value="4">★★★★☆ — Хорошо</option>
@@ -345,7 +568,7 @@ function GamePageContent() {
                   <option value="1">★☆☆☆☆ — Очень плохо</option>
                 </select>
 
-                <label className="mt-5 block text-sm text-gray-400">
+                <label className="mt-6 block text-sm font-semibold text-[#B8BAC0]">
                   Комментарий
                 </label>
 
@@ -353,67 +576,96 @@ function GamePageContent() {
                   value={comment}
                   onChange={(event) => setComment(event.target.value)}
                   maxLength={1000}
-                  rows={4}
+                  rows={5}
                   placeholder="Поделись впечатлениями об игре..."
-                  className="mt-2 w-full rounded-xl border border-white/10 bg-[#1b2030] p-4 text-white outline-none focus:border-violet-500"
+                  className="mt-3 w-full resize-y rounded-xl border border-[#303236] bg-[#242629] p-4 text-sm text-white outline-none transition placeholder:text-[#777980] focus:border-[#F07832]"
                 />
+
+                <div className="mt-2 text-right text-xs text-[#92949A]">
+                  {comment.length}/1000
+                </div>
 
                 <button
                   type="submit"
                   disabled={savingReview}
-                  className="mt-5 rounded-xl bg-violet-600 px-6 py-3 font-bold hover:bg-violet-500 disabled:opacity-50"
+                  className="mt-5 rounded-xl bg-[#F07832] px-7 py-3.5 font-bold text-white transition hover:bg-[#db6828] disabled:cursor-wait disabled:opacity-50"
                 >
-                  {savingReview ? "Сохранение..." : "Сохранить отзыв"}
+                  {savingReview ? "Сохранение..." : "Опубликовать отзыв"}
                 </button>
 
                 {!userId && (
-                  <p className="mt-3 text-sm text-gray-400">
-                    Для публикации отзыва нужно войти в аккаунт.
+                  <p className="mt-4 text-sm text-[#92949A]">
+                    Для публикации отзыва необходимо{" "}
+                    <a
+                      href="/auth"
+                      className="font-semibold text-[#F07832] hover:underline"
+                    >
+                      войти в аккаунт
+                    </a>
+                    .
                   </p>
                 )}
 
                 {reviewMessage && (
-                  <p className="mt-4 text-sm text-violet-300">
+                  <p className="mt-4 rounded-lg border border-[#303236] bg-[#242629] p-3 text-sm text-[#E7E7E7]">
                     {reviewMessage}
                   </p>
                 )}
               </form>
 
               {reviewError && (
-                <p className="mb-4 text-sm text-red-300">{reviewError}</p>
+                <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300">
+                  {reviewError}
+                </div>
               )}
 
               {reviews.length === 0 && !reviewError && (
-                <p className="rounded-2xl border border-white/10 bg-[#121622] p-8 text-center text-gray-400">
-                  Пока никто не оставил отзыв. Будь первым!
-                </p>
+                <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] px-6 py-12 text-center">
+                  <div className="text-4xl">💬</div>
+                  <h3 className="mt-4 text-lg font-bold">
+                    Пока нет отзывов
+                  </h3>
+                  <p className="mt-2 text-sm text-[#92949A]">
+                    Стань первым, кто поделится впечатлениями об этой игре.
+                  </p>
+                </div>
               )}
 
               <div className="space-y-4">
                 {reviews.map((review) => (
                   <article
                     key={review.id}
-                    className="rounded-2xl border border-white/10 bg-[#121622] p-6"
+                    className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-5 sm:p-6"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <span className="font-bold">
-                        {review.user_id === userId
-                          ? "Твой отзыв"
-                          : "Пользователь"}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F07832]/10 font-bold text-[#F07832]">
+                          {review.user_id === userId ? "Я" : "G"}
+                        </div>
 
-                      <span className="text-yellow-400">
+                        <div>
+                          <p className="font-bold">
+                            {review.user_id === userId
+                              ? "Твой отзыв"
+                              : "Пользователь"}
+                          </p>
+
+                          <p className="mt-1 text-xs text-[#92949A]">
+                            {new Date(review.created_at).toLocaleDateString(
+                              "ru-RU"
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="text-lg tracking-wider text-[#F07832]">
                         {"★".repeat(review.rating)}
                         {"☆".repeat(5 - review.rating)}
                       </span>
                     </div>
 
-                    <p className="mt-3 whitespace-pre-wrap text-gray-300">
+                    <p className="mt-5 whitespace-pre-wrap text-sm leading-7 text-[#B8BAC0]">
                       {review.comment || "Без комментария"}
-                    </p>
-
-                    <p className="mt-4 text-xs text-gray-500">
-                      {new Date(review.created_at).toLocaleDateString("ru-RU")}
                     </p>
                   </article>
                 ))}
@@ -422,6 +674,46 @@ function GamePageContent() {
           </>
         )}
       </div>
+
+      {/* FOOTER */}
+      <footer className="mt-20 border-t border-[#303236] bg-[#111214]">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-4 py-8 sm:flex-row sm:items-center sm:px-6">
+          <a href="/" className="flex items-center gap-2 text-xl font-black">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F07832] text-sm text-white">
+              V
+            </span>
+            VEXORA
+          </a>
+
+          <p className="text-xs text-[#92949A]">
+            ENTER THE GAME. © {new Date().getFullYear()} VEXORA
+          </p>
+        </div>
+      </footer>
+
+      {/* SCREENSHOT MODAL */}
+      {selectedScreenshot && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+          onClick={() => setSelectedScreenshot(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setSelectedScreenshot(null)}
+            className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#242629] text-2xl text-white transition hover:bg-[#F07832]"
+            aria-label="Закрыть изображение"
+          >
+            ×
+          </button>
+
+          <img
+            src={selectedScreenshot}
+            alt={`Скриншот игры ${game?.title ?? ""}`}
+            className="max-h-[85vh] max-w-full rounded-xl object-contain"
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
+      )}
     </main>
   );
 }
@@ -430,8 +722,8 @@ export default function GamePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#0b0d14] p-10 text-white">
-          Загрузка страницы...
+        <div className="flex min-h-screen items-center justify-center bg-[#111214] text-[#92949A]">
+          Загружаем страницу...
         </div>
       }
     >

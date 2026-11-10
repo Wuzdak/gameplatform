@@ -6,36 +6,96 @@ import { supabase } from "../lib/supabase";
 
 export default function PresenceTracker() {
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
     let active = true;
+    let interval: ReturnType<typeof setInterval> | null = null;
+    let heartbeatInProgress = false;
+
+    function stopHeartbeat() {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    }
 
     async function heartbeat() {
-      if (!active || document.visibilityState !== "visible") return;
+      if (
+        !active ||
+        document.visibilityState !== "visible" ||
+        heartbeatInProgress
+      ) {
+        return;
+      }
 
+      heartbeatInProgress = true;
+
+      try {
+        const { data, error } = await supabase.auth.getUser();
+
+        if (!active || error || !data.user) {
+          return;
+        }
+
+        const { error: presenceError } = await supabase.rpc(
+          "heartbeat_my_presence"
+        );
+
+        if (presenceError) {
+          console.error(
+            "Presence heartbeat error:",
+            presenceError.message
+          );
+        }
+      } catch (error) {
+        console.error("Presence error:", error);
+      } finally {
+        heartbeatInProgress = false;
+      }
+    }
+
+    function startHeartbeat() {
+      if (!active) return;
+
+      stopHeartbeat();
+
+      heartbeat();
+
+      interval = setInterval(() => {
+        heartbeat();
+      }, 30000);
+    }
+
+    async function initialize() {
       const { data, error } = await supabase.auth.getUser();
 
-      if (error || !data.user) return;
+      if (!active) return;
 
-      await supabase.rpc("heartbeat_my_presence");
-    }
-
-    async function start() {
-      await heartbeat();
-
-      if (!interval) {
-        interval = setInterval(heartbeat, 30000);
+      if (error || !data.user) {
+        stopHeartbeat();
+        return;
       }
+
+      startHeartbeat();
     }
 
-    start();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      if (
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "USER_UPDATED"
+      ) {
         if (session?.user) {
-          heartbeat();
+          startHeartbeat();
         }
       }
-    );
+
+      if (event === "SIGNED_OUT") {
+        stopHeartbeat();
+      }
+    });
 
     function handleVisibilityChange() {
       if (document.visibilityState === "visible") {
@@ -43,16 +103,19 @@ export default function PresenceTracker() {
       }
     }
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    initialize();
 
     return () => {
       active = false;
 
-      if (interval) {
-        clearInterval(interval);
-      }
+      stopHeartbeat();
+      subscription.unsubscribe();
 
-      authListener.subscription.unsubscribe();
       document.removeEventListener(
         "visibilitychange",
         handleVisibilityChange

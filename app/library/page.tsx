@@ -2,6 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabase";
 
 type Game = {
@@ -12,16 +14,37 @@ type Game = {
   acquired_at: string;
 };
 
+const C = {
+  bg: "#111214",
+  surface: "#1B1D20",
+  surface2: "#242629",
+  border: "#303236",
+  orange: "#F07832",
+  text: "#E7E7E7",
+  muted: "#92949A",
+};
+
 export default function LibraryPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("Все");
+  const [menuOpen, setMenuOpen] = useState(false);
 
+  // Загрузка библиотеки
   useEffect(() => {
+    let mounted = true;
+
     async function loadLibrary() {
+      setLoading(true);
+      setMessage("");
+
       const { data: userData, error: userError } =
         await supabase.auth.getUser();
+
+      if (!mounted) return;
 
       if (userError || !userData.user) {
         setUser(null);
@@ -36,8 +59,12 @@ export default function LibraryPage() {
         .select("*")
         .order("acquired_at", { ascending: false });
 
+      if (!mounted) return;
+
       if (error) {
-        setMessage("Не удалось загрузить библиотеку: " + error.message);
+        setMessage(
+          "Не удалось загрузить библиотеку: " + error.message
+        );
       } else {
         setGames(data ?? []);
       }
@@ -46,116 +73,760 @@ export default function LibraryPage() {
     }
 
     loadLibrary();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#0b0d14] p-10 text-white">
-        Загрузка библиотеки...
-      </main>
-    );
-  }
+  // Закрытие меню клавишей Escape
+  useEffect(() => {
+    if (!menuOpen) return;
 
-  if (!user) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-[#0b0d14] text-white">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Войди в аккаунт</h1>
-          <a href="/auth" className="mt-4 block text-violet-400">
-            Перейти ко входу
-          </a>
-        </div>
-      </main>
-    );
-  }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  // Блокировка прокрутки при открытом меню
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
+
+  const displayName =
+    user?.user_metadata?.full_name || user?.email || "Пользователь";
+
+  const categories = [
+    "Все",
+    ...Array.from(new Set(games.map((game) => game.genre))).sort(),
+  ];
+
+  const filteredGames = games.filter((game) => {
+    const query = search.trim().toLowerCase();
+
+    const matchesSearch =
+      game.game_title.toLowerCase().includes(query) ||
+      game.genre.toLowerCase().includes(query);
+
+    const matchesCategory =
+      activeCategory === "Все" || game.genre === activeCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const sortedGames = [...filteredGames].sort(
+    (a, b) =>
+      new Date(b.acquired_at).getTime() -
+      new Date(a.acquired_at).getTime()
+  );
 
   return (
-    <main className="min-h-screen bg-[#0b0d14] px-5 py-10 text-white">
-      <div className="mx-auto max-w-6xl">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <a href="/" className="text-2xl font-black">
-            Game<span className="text-violet-400">Platform</span>
-          </a>
+    <main
+      className="min-h-screen text-white"
+      style={{ background: C.bg }}
+    >
+      {/* HEADER */}
+      <header
+        className="sticky top-0 z-50 border-b backdrop-blur-2xl"
+        style={{
+          background: "rgba(17,18,20,0.96)",
+          borderColor: C.border,
+        }}
+      >
+        <div className="mx-auto max-w-7xl px-5 py-3 lg:px-8">
+          <div className="flex items-center justify-between gap-4">
+            {/* MENU AND LOGO */}
+            <div className="flex shrink-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((previous) => !previous)}
+                aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
+                aria-expanded={menuOpen}
+                aria-controls="library-sidebar"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border text-xl transition hover:bg-white/10"
+                style={{
+                  borderColor: C.border,
+                  color: C.text,
+                }}
+              >
+                {menuOpen ? "×" : "☰"}
+              </button>
 
-          <nav className="flex gap-5 text-sm text-gray-300">
-            <a href="/">Магазин</a>
-            <a href="/profile">Профиль</a>
-          </nav>
-        </header>
+              <Link href="/" className="flex items-center gap-2">
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-lg font-black text-black"
+                  style={{
+                    background: C.orange,
+                    boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
+                  }}
+                >
+                  V
+                </div>
 
-        <section className="mt-14">
-          <p className="text-sm font-bold uppercase tracking-widest text-violet-400">
-            Твоя коллекция
+                <span className="hidden text-lg font-black tracking-wide sm:block">
+                  VEX<span style={{ color: C.orange }}>ORA</span>
+                </span>
+              </Link>
+            </div>
+
+            {/* SEARCH */}
+            <div className="relative mx-auto hidden w-full max-w-xl md:block">
+              <span
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-xl"
+                style={{ color: C.orange }}
+              >
+                ⌕
+              </span>
+
+              <input
+                type="search"
+                placeholder="Поиск в библиотеке..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-orange-500"
+                style={{
+                  background: C.surface,
+                  borderColor: C.border,
+                }}
+              />
+
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Очистить поиск"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1"
+                  style={{ color: C.muted }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            {/* USER */}
+            <div className="flex shrink-0 items-center gap-2">
+              {user && (
+                <Link
+                  href="/profile"
+                  className="hidden max-w-40 truncate rounded-xl border px-3 py-2.5 text-sm font-semibold transition hover:bg-white/5 sm:block"
+                  style={{
+                    borderColor: C.border,
+                    background: C.surface,
+                  }}
+                >
+                  {displayName}
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* MOBILE SEARCH */}
+          <div className="relative mt-3 md:hidden">
+            <span
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-xl"
+              style={{ color: C.orange }}
+            >
+              ⌕
+            </span>
+
+            <input
+              type="search"
+              placeholder="Поиск в библиотеке..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="w-full rounded-xl border py-3 pl-11 pr-4 text-sm text-white outline-none focus:border-orange-500"
+              style={{
+                background: C.surface,
+                borderColor: C.border,
+              }}
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* OVERLAY */}
+      <button
+        type="button"
+        aria-label="Закрыть меню"
+        tabIndex={menuOpen ? 0 : -1}
+        onClick={() => setMenuOpen(false)}
+        className={`fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${
+          menuOpen
+            ? "visible opacity-100"
+            : "invisible pointer-events-none opacity-0"
+        }`}
+      />
+
+      {/* SIDEBAR */}
+      <aside
+        id="library-sidebar"
+        aria-label="Главная навигация"
+        aria-hidden={!menuOpen}
+        className={`fixed left-0 top-0 z-[70] flex h-[100dvh] w-[280px] max-w-[85vw] flex-col border-r transition-transform duration-300 ease-in-out ${
+          menuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{
+          background: "#17181A",
+          borderColor: C.border,
+        }}
+      >
+        <div
+          className="flex items-center justify-between border-b p-5"
+          style={{ borderColor: C.border }}
+        >
+          <Link
+            href="/"
+            onClick={() => setMenuOpen(false)}
+            className="text-lg font-black tracking-wide"
+          >
+            VEX<span style={{ color: C.orange }}>ORA</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Закрыть меню"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-2xl hover:bg-white/10"
+            style={{ color: C.muted }}
+          >
+            ×
+          </button>
+        </div>
+
+        {user && (
+          <Link
+            href="/profile"
+            onClick={() => setMenuOpen(false)}
+            className="mx-4 mt-5 rounded-xl border p-4 transition hover:bg-white/5"
+            style={{ borderColor: C.border }}
+          >
+            <p className="text-xs" style={{ color: C.muted }}>
+              Ваш аккаунт
+            </p>
+
+            <p className="mt-1 truncate text-sm font-bold">
+              {displayName}
+            </p>
+
+            <p
+              className="mt-2 text-xs font-semibold"
+              style={{ color: C.orange }}
+            >
+              Открыть профиль →
+            </p>
+          </Link>
+        )}
+
+        <nav className="flex-1 space-y-2 overflow-y-auto p-4">
+          <p
+            className="mb-4 px-3 text-[10px] font-black uppercase tracking-[0.25em]"
+            style={{ color: C.muted }}
+          >
+            Основное меню
           </p>
 
-          <h1 className="mt-3 text-4xl font-black">
-            Библиотека игр
-          </h1>
+          {[
+            { icon: "⌂", title: "Главная", href: "/" },
+            { icon: "▣", title: "Магазин", href: "/#store" },
+            { icon: "▦", title: "Каталог игр", href: "/#games" },
+            { icon: "✦", title: "Предложения", href: "/#offers" },
+          ].map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition hover:bg-white/5"
+              style={{ color: C.text }}
+            >
+              <span
+                className="w-5 text-center text-lg"
+                style={{ color: C.orange }}
+              >
+                {item.icon}
+              </span>
+              {item.title}
+            </Link>
+          ))}
 
-          <p className="mt-3 text-gray-400">
-            Привет, {user.user_metadata?.full_name || user.email}!
+          <div
+            className="my-5 border-t"
+            style={{ borderColor: C.border }}
+          />
+
+          <p
+            className="mb-4 px-3 text-[10px] font-black uppercase tracking-[0.25em]"
+            style={{ color: C.muted }}
+          >
+            Личный кабинет
           </p>
 
-          <div className="mt-8 rounded-2xl border border-white/10 bg-[#121622] p-5">
-            <p className="text-sm text-gray-400">Всего игр</p>
-            <p className="mt-1 text-3xl font-black">{games.length}</p>
+          <Link
+            href="/library"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition hover:bg-white/5"
+            style={{
+              color: C.orange,
+              background: "rgba(240,120,50,0.08)",
+            }}
+          >
+            <span className="w-5 text-center text-lg">▤</span>
+            Библиотека
+          </Link>
+
+          <Link
+            href="/profile"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition hover:bg-white/5"
+            style={{ color: C.text }}
+          >
+            <span
+              className="w-5 text-center text-lg"
+              style={{ color: C.orange }}
+            >
+              ♙
+            </span>
+            Профиль
+          </Link>
+        </nav>
+
+        <div
+          className="border-t p-5"
+          style={{ borderColor: C.border }}
+        >
+          <p
+            className="text-center text-[10px] font-semibold tracking-widest"
+            style={{ color: "#66686D" }}
+          >
+            VEXORA © 2026
+          </p>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <div className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
+        {/* PAGE TITLE */}
+        <section>
+          <p
+            className="mb-3 text-xs font-black uppercase tracking-[0.25em]"
+            style={{ color: C.orange }}
+          >
+            YOUR COLLECTION
+          </p>
+
+          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div>
+              <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
+                Библиотека игр
+              </h1>
+
+              <p className="mt-4 text-sm sm:text-base" style={{ color: C.muted }}>
+                Добро пожаловать, {displayName}.
+                Все твои игры в одном месте.
+              </p>
+            </div>
+
+            <Link
+              href="/"
+              className="inline-flex w-fit items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-black transition hover:-translate-y-0.5 hover:brightness-110"
+              style={{ background: C.orange }}
+            >
+              Найти новые игры →
+            </Link>
           </div>
         </section>
 
+        {/* STATISTICS */}
+        <section className="mt-10 grid gap-4 sm:grid-cols-3">
+          <div
+            className="rounded-2xl border p-6"
+            style={{
+              background: C.surface,
+              borderColor: C.border,
+            }}
+          >
+            <p className="text-sm" style={{ color: C.muted }}>
+              Всего игр
+            </p>
+
+            <p className="mt-3 text-4xl font-black">
+              {games.length}
+            </p>
+
+            <p className="mt-2 text-xs" style={{ color: C.orange }}>
+              Твоя коллекция
+            </p>
+          </div>
+
+          <div
+            className="rounded-2xl border p-6"
+            style={{
+              background: C.surface,
+              borderColor: C.border,
+            }}
+          >
+            <p className="text-sm" style={{ color: C.muted }}>
+              Жанров
+            </p>
+
+            <p className="mt-3 text-4xl font-black">
+              {new Set(games.map((game) => game.genre)).size}
+            </p>
+
+            <p className="mt-2 text-xs" style={{ color: C.orange }}>
+              Разнообразие игр
+            </p>
+          </div>
+
+          <div
+            className="rounded-2xl border p-6"
+            style={{
+              background: C.surface,
+              borderColor: C.border,
+            }}
+          >
+            <p className="text-sm" style={{ color: C.muted }}>
+              Недавно добавлено
+            </p>
+
+            <p className="mt-3 text-4xl font-black">
+              {games.length > 0 ? "1" : "0"}
+            </p>
+
+            <p className="mt-2 text-xs" style={{ color: C.orange }}>
+              Последнее пополнение
+            </p>
+          </div>
+        </section>
+
+        {/* ERROR */}
         {message && (
-          <p className="mt-6 rounded-xl bg-red-500/10 p-4 text-red-300">
+          <div className="mt-8 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
             {message}
-          </p>
+          </div>
         )}
 
-        {games.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-white/10 bg-[#121622] p-10 text-center">
-            <div className="text-5xl">🎮</div>
-            <h2 className="mt-5 text-xl font-bold">
-              Библиотека пока пуста
-            </h2>
-            <p className="mt-2 text-gray-400">
-              Здесь появятся игры после их добавления в аккаунт.
-            </p>
-            <a
-              href="/"
-              className="mt-6 inline-block rounded-xl bg-violet-600 px-6 py-3 font-bold"
-            >
-              Перейти в магазин
-            </a>
-          </div>
-        ) : (
-          <section className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {games.map((game) => (
-              <article
-                key={game.id}
-                className="overflow-hidden rounded-2xl border border-white/10 bg-[#121622]"
-              >
-                {game.image_url ? (
-                  <img
-                    src={game.image_url}
-                    alt={game.game_title}
-                    className="h-48 w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-48 items-center justify-center bg-[#202638] text-5xl">
-                    🎮
-                  </div>
-                )}
+        {/* LOADING */}
+        {loading && (
+          <div
+            className="mt-10 rounded-2xl border py-20 text-center"
+            style={{
+              background: C.surface,
+              borderColor: C.border,
+            }}
+          >
+            <div
+              className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-t-transparent"
+              style={{
+                borderColor: `${C.orange} transparent ${C.orange} ${C.orange}`,
+              }}
+            />
 
-                <div className="p-5">
-                  <h2 className="text-xl font-bold">{game.game_title}</h2>
-                  <p className="mt-2 text-sm text-gray-400">{game.genre}</p>
-                  <p className="mt-5 text-sm text-violet-300">
-                    Добавлена:{" "}
-                    {new Date(game.acquired_at).toLocaleDateString("ru-RU")}
-                  </p>
+            <p className="mt-5 font-bold">
+              Загружаем твою библиотеку...
+            </p>
+
+            <p className="mt-2 text-sm" style={{ color: C.muted }}>
+              Получаем список игр
+            </p>
+          </div>
+        )}
+
+        {/* NOT AUTHORIZED */}
+        {!loading && !user && (
+          <div
+            className="mt-10 rounded-2xl border p-10 text-center"
+            style={{
+              background: C.surface,
+              borderColor: C.border,
+            }}
+          >
+            <div className="text-5xl">♙</div>
+
+            <h2 className="mt-5 text-2xl font-black">
+              Войди в аккаунт
+            </h2>
+
+            <p className="mt-3 text-sm" style={{ color: C.muted }}>
+              Авторизуйся, чтобы просматривать свою библиотеку игр.
+            </p>
+
+            <Link
+              href="/auth"
+              className="mt-7 inline-block rounded-xl px-7 py-3 font-bold text-black transition hover:brightness-110"
+              style={{ background: C.orange }}
+            >
+              Перейти ко входу
+            </Link>
+          </div>
+        )}
+
+        {/* LIBRARY */}
+        {!loading && user && !message && (
+          <section className="mt-12">
+            {/* SECTION HEADER */}
+            <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-black">
+                  Мои игры
+                </h2>
+
+                <p className="mt-2 text-sm" style={{ color: C.muted }}>
+                  Найдено игр: {filteredGames.length}
+                </p>
+              </div>
+
+              <div className="text-xs" style={{ color: C.muted }}>
+                Сначала новые
+              </div>
+            </div>
+
+            {/* CATEGORIES */}
+            {games.length > 0 && (
+              <div className="mb-8 flex gap-2 overflow-x-auto pb-3">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => setActiveCategory(category)}
+                    className="shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition"
+                    style={
+                      activeCategory === category
+                        ? {
+                            background: C.orange,
+                            color: "#171717",
+                          }
+                        : {
+                            background: C.surface,
+                            border: `1px solid ${C.border}`,
+                            color: C.muted,
+                          }
+                    }
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* EMPTY LIBRARY */}
+            {games.length === 0 && (
+              <div
+                className="rounded-2xl border px-6 py-16 text-center"
+                style={{
+                  background: C.surface,
+                  borderColor: C.border,
+                }}
+              >
+                <div
+                  className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl text-4xl"
+                  style={{
+                    background: C.surface2,
+                    color: C.orange,
+                  }}
+                >
+                  🎮
                 </div>
-              </article>
-            ))}
+
+                <h2 className="mt-6 text-2xl font-black">
+                  Библиотека пока пуста
+                </h2>
+
+                <p className="mx-auto mt-3 max-w-md text-sm leading-6" style={{ color: C.muted }}>
+                  Здесь появятся игры после их добавления в аккаунт.
+                  Отправляйся в магазин и собери свою коллекцию.
+                </p>
+
+                <Link
+                  href="/"
+                  className="mt-7 inline-flex rounded-xl px-7 py-3 font-bold text-black transition hover:brightness-110"
+                  style={{ background: C.orange }}
+                >
+                  Перейти в магазин →
+                </Link>
+              </div>
+            )}
+
+            {/* GAME CARDS */}
+            {games.length > 0 && sortedGames.length > 0 && (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {sortedGames.map((game) => (
+                  <article
+                    key={game.id}
+                    className="group overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-1 hover:border-orange-500/50"
+                    style={{
+                      background: C.surface,
+                      borderColor: C.border,
+                    }}
+                  >
+                    {/* GAME IMAGE */}
+                    <div
+                      className="relative h-52 overflow-hidden"
+                      style={{
+                        background: game.image_url
+                          ? `url("${game.image_url}") center/cover`
+                          : "linear-gradient(135deg,#39302A,#1B1D20)",
+                      }}
+                    >
+                      {!game.image_url && (
+                        <div
+                          className="flex h-full items-center justify-center text-6xl font-black"
+                          style={{ color: C.orange }}
+                        >
+                          V
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+
+                      <span
+                        className="absolute left-4 top-4 rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md"
+                        style={{
+                          background: "rgba(17,18,20,0.8)",
+                          borderColor: "rgba(255,255,255,0.15)",
+                        }}
+                      >
+                        В библиотеке
+                      </span>
+
+                      <span
+                        className="absolute bottom-4 left-4 text-xs font-bold"
+                        style={{ color: "#FFD0AE" }}
+                      >
+                        {game.genre}
+                      </span>
+                    </div>
+
+                    {/* GAME INFO */}
+                    <div className="p-5">
+                      <h3 className="truncate text-xl font-bold transition group-hover:text-orange-400">
+                        {game.game_title}
+                      </h3>
+
+                      <div
+                        className="mt-5 flex items-center justify-between border-t pt-4"
+                        style={{ borderColor: C.border }}
+                      >
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider" style={{ color: C.muted }}>
+                            Добавлена
+                          </p>
+
+                          <p className="mt-1 text-sm font-semibold" style={{ color: "#FFB98F" }}>
+                            {new Date(game.acquired_at).toLocaleDateString("ru-RU")}
+                          </p>
+                        </div>
+
+                        <span
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-lg"
+                          style={{
+                            background: "rgba(240,120,50,0.1)",
+                            color: C.orange,
+                          }}
+                        >
+                          ✓
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {/* NO SEARCH RESULTS */}
+            {games.length > 0 && sortedGames.length === 0 && (
+              <div
+                className="rounded-2xl border py-16 text-center"
+                style={{
+                  background: C.surface,
+                  borderColor: C.border,
+                }}
+              >
+                <div className="text-4xl">⌕</div>
+
+                <h2 className="mt-5 text-xl font-black">
+                  Ничего не найдено
+                </h2>
+
+                <p className="mt-2 text-sm" style={{ color: C.muted }}>
+                  Попробуй изменить поисковый запрос или категорию.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setActiveCategory("Все");
+                  }}
+                  className="mt-6 rounded-xl px-6 py-3 text-sm font-bold text-black transition hover:brightness-110"
+                  style={{ background: C.orange }}
+                >
+                  Сбросить фильтры
+                </button>
+              </div>
+            )}
           </section>
         )}
       </div>
+
+      {/* FOOTER */}
+      <footer
+        className="mt-10 border-t"
+        style={{
+          background: "#0D0E10",
+          borderColor: C.border,
+        }}
+      >
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-7 px-5 py-10 sm:flex-row sm:items-center lg:px-8">
+          <div>
+            <Link href="/" className="text-xl font-black tracking-wide">
+              VEX<span style={{ color: C.orange }}>ORA</span>
+            </Link>
+
+            <p
+              className="mt-2 text-xs font-bold tracking-[0.2em]"
+              style={{ color: C.muted }}
+            >
+              ENTER THE GAME.
+            </p>
+          </div>
+
+          <div
+            className="flex flex-wrap gap-6 text-sm"
+            style={{ color: C.muted }}
+          >
+            <Link href="/" className="transition hover:text-white">
+              Магазин
+            </Link>
+
+            <Link href="/library" className="transition hover:text-white">
+              Библиотека
+            </Link>
+
+            <Link href="/profile" className="transition hover:text-white">
+              Профиль
+            </Link>
+          </div>
+
+          <p className="text-xs" style={{ color: "#66686D" }}>
+            © 2026 VEXORA
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

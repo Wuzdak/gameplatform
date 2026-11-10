@@ -382,7 +382,7 @@ export default function AdminPage() {
     return data.publicUrl;
   }
 
-  // Удаление файлов из нашего Storage.
+  // Удаление файлов из Storage.
 
   async function deleteStorageImages(imageUrls: string[]) {
     const paths = Array.from(
@@ -745,27 +745,40 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#090914] p-8 text-white">
-        Загрузка...
+      <main className="min-h-screen bg-[#111214] p-8 text-white">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-sm font-bold tracking-[0.3em] text-[#F07832]">
+            VEXORA
+          </p>
+          <p className="mt-4 text-[#92949A]">Загрузка панели...</p>
+        </div>
       </main>
     );
   }
 
   if (!isAdmin) {
     return (
-      <main className="min-h-screen bg-[#090914] p-8 text-white">
-        <h1 className="text-3xl font-bold">Доступ запрещён</h1>
+      <main className="flex min-h-screen items-center justify-center bg-[#111214] p-8 text-white">
+        <div className="w-full max-w-md rounded-2xl border border-[#303236] bg-[#1B1D20] p-8">
+          <p className="text-sm font-bold tracking-[0.3em] text-[#F07832]">
+            VEXORA
+          </p>
 
-        <p className="mt-3 text-gray-400">
-          У этого аккаунта нет прав администратора.
-        </p>
+          <h1 className="mt-5 text-3xl font-bold">
+            Доступ запрещён
+          </h1>
 
-        <button
-          onClick={() => router.push("/")}
-          className="mt-6 rounded-xl bg-purple-600 px-5 py-3"
-        >
-          На главную
-        </button>
+          <p className="mt-3 text-[#92949A]">
+            У этого аккаунта нет прав администратора.
+          </p>
+
+          <button
+            onClick={() => router.push("/")}
+            className="mt-6 rounded-xl bg-[#F07832] px-5 py-3 font-semibold text-white transition hover:bg-[#FF8B43]"
+          >
+            На главную
+          </button>
+        </div>
       </main>
     );
   }
@@ -786,30 +799,41 @@ export default function AdminPage() {
     );
   });
 
+  const inputClass =
+    "w-full rounded-xl border border-[#303236] bg-[#141618] p-3 text-white outline-none transition placeholder:text-[#666970] focus:border-[#F07832]";
+
+  const secondaryButtonClass =
+    "rounded-xl border border-[#303236] px-4 py-2 text-sm text-[#E7E7E7] transition hover:border-[#F07832] hover:bg-[#F07832]/10";
+
   return (
-    <main className="min-h-screen bg-[#090914] p-6 text-white md:p-10">
+    <main className="min-h-screen bg-[#111214] p-5 text-[#E7E7E7] md:p-10">
       <div className="mx-auto max-w-6xl">
+
+        {/* Шапка */}
 
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-purple-400">GAMEPLATFORM</p>
+            <p className="text-sm font-extrabold tracking-[0.3em] text-[#F07832]">
+              VEXORA
+            </p>
 
-            <h1 className="text-3xl font-bold">
+            <h1 className="mt-2 text-3xl font-bold">
               Панель администратора
             </h1>
+
+            <p className="mt-2 text-sm text-[#92949A]">
+              Управление игровой платформой
+            </p>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={loadData}
-              className="rounded-xl border border-white/10 px-4 py-2 hover:bg-white/10"
-            >
+          <div className="flex flex-wrap gap-3">
+            <button onClick={loadData} className={secondaryButtonClass}>
               Обновить
             </button>
 
             <button
               onClick={() => router.push("/")}
-              className="rounded-xl border border-white/10 px-4 py-2 hover:bg-white/10"
+              className={secondaryButtonClass}
             >
               На главную
             </button>
@@ -817,42 +841,39 @@ export default function AdminPage() {
         </div>
 
         {message && (
-          <p className="mb-5 whitespace-pre-wrap rounded-xl bg-white/10 p-4">
+          <div
+            role="status"
+            className="mb-6 whitespace-pre-wrap rounded-xl border border-[#F07832]/30 bg-[#F07832]/10 p-4 text-sm text-[#F5B184]"
+          >
             {message}
-          </p>
+          </div>
         )}
 
         {/* Статистика */}
 
-        <h2 className="mb-4 text-xl font-semibold">
-          Статистика платформы
-        </h2>
+        <section className="mb-10">
+          <h2 className="mb-4 text-xl font-bold">
+            Статистика платформы
+          </h2>
 
-        <div className="mb-10 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <p className="text-gray-400">Всего пользователей</p>
-
-            <p className="mt-2 text-4xl font-bold text-purple-400">
-              {profiles.length}
-            </p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              { label: "Всего пользователей", value: profiles.length },
+              { label: "Заявок разработчиков", value: applications.length },
+              { label: "Всего игр", value: games.length },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-6"
+              >
+                <p className="text-sm text-[#92949A]">{item.label}</p>
+                <p className="mt-3 text-4xl font-extrabold text-[#F07832]">
+                  {item.value}
+                </p>
+              </div>
+            ))}
           </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <p className="text-gray-400">Заявок разработчиков</p>
-
-            <p className="mt-2 text-4xl font-bold text-purple-400">
-              {applications.length}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <p className="text-gray-400">Всего игр</p>
-
-            <p className="mt-2 text-4xl font-bold text-purple-400">
-              {games.length}
-            </p>
-          </div>
-        </div>
+        </section>
 
         {/* Управление играми */}
 
@@ -864,18 +885,23 @@ export default function AdminPage() {
           <form
             id="game-form"
             onSubmit={saveGame}
-            className="mb-8 rounded-2xl border border-purple-500/30 bg-white/5 p-6"
+            className="mb-8 rounded-2xl border border-[#F07832]/30 bg-[#1B1D20] p-5 md:p-6"
           >
-            <h3 className="mb-5 text-xl font-semibold">
-              {editingId
-                ? "Редактирование игры"
-                : "Добавление новой игры"}
-            </h3>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-xl font-semibold">
+                {editingId
+                  ? "Редактирование игры"
+                  : "Добавление новой игры"}
+              </h3>
 
-            <div className="grid gap-4 md:grid-cols-2">
+              <span className="rounded-full bg-[#F07832]/10 px-3 py-1 text-xs font-semibold text-[#F07832]">
+                GAME MANAGER
+              </span>
+            </div>
 
+            <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm text-gray-400">
+                <label className="mb-2 block text-sm text-[#92949A]">
                   Название игры *
                 </label>
 
@@ -887,12 +913,12 @@ export default function AdminPage() {
                     updateGameForm("title", e.target.value)
                   }
                   placeholder="Например, Cyber World"
-                  className="w-full rounded-xl border border-white/10 bg-[#111120] p-3 outline-none focus:border-purple-500"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-gray-400">
+                <label className="mb-2 block text-sm text-[#92949A]">
                   Жанр *
                 </label>
 
@@ -904,12 +930,12 @@ export default function AdminPage() {
                     updateGameForm("genre", e.target.value)
                   }
                   placeholder="Например, Экшен"
-                  className="w-full rounded-xl border border-white/10 bg-[#111120] p-3 outline-none focus:border-purple-500"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-gray-400">
+                <label className="mb-2 block text-sm text-[#92949A]">
                   Цена (условная, без оплаты)
                 </label>
 
@@ -922,18 +948,18 @@ export default function AdminPage() {
                   onChange={(e) =>
                     updateGameForm("price", e.target.value)
                   }
-                  className="w-full rounded-xl border border-white/10 bg-[#111120] p-3 outline-none focus:border-purple-500"
+                  className={inputClass}
                 />
               </div>
 
               {/* Обложка */}
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-purple-300">
+                <label className="mb-2 block text-sm font-semibold text-[#F07832]">
                   Обложка игры
                 </label>
 
-                <p className="mb-3 text-xs text-gray-400">
+                <p className="mb-3 text-xs text-[#92949A]">
                   Выбери изображение с компьютера. Допустимые форматы:
                   JPG, PNG, WEBP, GIF. Максимальный размер — 5 МБ.
                 </p>
@@ -943,17 +969,17 @@ export default function AdminPage() {
                   accept="image/jpeg,image/png,image/webp,image/gif"
                   onChange={handleCoverUpload}
                   disabled={uploadingCover}
-                  className="block w-full cursor-pointer rounded-xl border border-white/10 bg-[#111120] p-3 text-sm text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-purple-600 file:px-4 file:py-2 file:text-white hover:file:bg-purple-500 disabled:opacity-50"
+                  className="block w-full cursor-pointer rounded-xl border border-[#303236] bg-[#141618] p-3 text-sm text-[#92949A] file:mr-4 file:rounded-lg file:border-0 file:bg-[#F07832] file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-[#FF8B43] disabled:opacity-50"
                 />
 
                 {uploadingCover && (
-                  <p className="mt-2 text-sm text-purple-300">
+                  <p className="mt-2 text-sm text-[#F07832]">
                     Загружаем обложку...
                   </p>
                 )}
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-sm text-gray-400">
+                  <label className="mb-2 block text-sm text-[#92949A]">
                     Или вставь ссылку на обложку
                   </label>
 
@@ -964,14 +990,14 @@ export default function AdminPage() {
                       updateGameForm("image_url", e.target.value)
                     }
                     placeholder="https://example.com/image.jpg"
-                    className="w-full rounded-xl border border-white/10 bg-[#111120] p-3 outline-none focus:border-purple-500"
+                    className={inputClass}
                   />
                 </div>
 
                 {gameForm.image_url.trim() &&
                   isValidImageUrl(gameForm.image_url.trim()) && (
                     <div className="mt-4">
-                      <p className="mb-2 text-sm text-gray-400">
+                      <p className="mb-2 text-sm text-[#92949A]">
                         Предпросмотр обложки
                       </p>
 
@@ -979,7 +1005,7 @@ export default function AdminPage() {
                         <img
                           src={gameForm.image_url.trim()}
                           alt="Предпросмотр обложки"
-                          className="h-48 max-w-full rounded-xl object-cover"
+                          className="h-48 max-w-full rounded-xl border border-[#303236] object-cover"
                         />
 
                         <button
@@ -987,7 +1013,7 @@ export default function AdminPage() {
                           onClick={() =>
                             updateGameForm("image_url", "")
                           }
-                          className="absolute right-2 top-2 rounded-lg bg-red-700 px-3 py-2 text-sm hover:bg-red-600"
+                          className="absolute right-2 top-2 rounded-lg bg-red-700 px-3 py-2 text-sm text-white hover:bg-red-600"
                         >
                           Убрать обложку
                         </button>
@@ -999,7 +1025,7 @@ export default function AdminPage() {
               {/* Описание */}
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm text-gray-400">
+                <label className="mb-2 block text-sm text-[#92949A]">
                   Описание игры
                 </label>
 
@@ -1011,18 +1037,18 @@ export default function AdminPage() {
                     updateGameForm("description", e.target.value)
                   }
                   placeholder="Расскажи об игре..."
-                  className="w-full resize-y rounded-xl border border-white/10 bg-[#111120] p-3 outline-none focus:border-purple-500"
+                  className={`${inputClass} resize-y`}
                 />
               </div>
 
               {/* Скриншоты */}
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-purple-300">
+                <label className="mb-2 block text-sm font-semibold text-[#F07832]">
                   Скриншоты игры
                 </label>
 
-                <p className="mb-3 text-xs text-gray-400">
+                <p className="mb-3 text-xs text-[#92949A]">
                   Можно выбрать сразу несколько изображений.
                   Каждое изображение загрузится в Supabase Storage.
                   Максимальный размер одного файла — 5 МБ.
@@ -1034,17 +1060,17 @@ export default function AdminPage() {
                   multiple
                   onChange={handleScreenshotsUpload}
                   disabled={uploadingScreenshots}
-                  className="block w-full cursor-pointer rounded-xl border border-white/10 bg-[#111120] p-3 text-sm text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-purple-600 file:px-4 file:py-2 file:text-white hover:file:bg-purple-500 disabled:opacity-50"
+                  className="block w-full cursor-pointer rounded-xl border border-[#303236] bg-[#141618] p-3 text-sm text-[#92949A] file:mr-4 file:rounded-lg file:border-0 file:bg-[#F07832] file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-[#FF8B43] disabled:opacity-50"
                 />
 
                 {uploadingScreenshots && (
-                  <p className="mt-2 text-sm text-purple-300">
+                  <p className="mt-2 text-sm text-[#F07832]">
                     Загружаем скриншоты...
                   </p>
                 )}
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-sm text-gray-400">
+                  <label className="mb-2 block text-sm text-[#92949A]">
                     Или вставь ссылки на скриншоты
                   </label>
 
@@ -1057,13 +1083,13 @@ export default function AdminPage() {
                     placeholder={
                       "https://example.com/screenshot1.jpg\nhttps://example.com/screenshot2.jpg"
                     }
-                    className="w-full resize-y rounded-xl border border-white/10 bg-[#111120] p-3 outline-none focus:border-purple-500"
+                    className={`${inputClass} resize-y`}
                   />
                 </div>
 
                 {previewScreenshots.length > 0 && (
                   <div className="mt-4">
-                    <p className="mb-3 text-sm text-gray-400">
+                    <p className="mb-3 text-sm text-[#92949A]">
                       Скриншоты ({previewScreenshots.length})
                     </p>
 
@@ -1071,7 +1097,7 @@ export default function AdminPage() {
                       {previewScreenshots.map((url, index) => (
                         <div
                           key={`${url}-${index}`}
-                          className="overflow-hidden rounded-xl border border-white/10 bg-[#111120]"
+                          className="overflow-hidden rounded-xl border border-[#303236] bg-[#141618]"
                         >
                           <img
                             src={url}
@@ -1082,7 +1108,7 @@ export default function AdminPage() {
                           <button
                             type="button"
                             onClick={() => removeScreenshot(url)}
-                            className="w-full bg-red-700 px-3 py-2 text-sm hover:bg-red-600"
+                            className="w-full bg-red-700 px-3 py-2 text-sm text-white hover:bg-red-600"
                           >
                             Удалить скриншот
                           </button>
@@ -1096,11 +1122,11 @@ export default function AdminPage() {
               {/* Системные требования */}
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-purple-300">
+                <label className="mb-2 block text-sm font-semibold text-[#F07832]">
                   Системные требования
                 </label>
 
-                <p className="mb-2 text-xs text-gray-400">
+                <p className="mb-2 text-xs text-[#92949A]">
                   Укажи минимальные и рекомендуемые характеристики компьютера.
                 </p>
 
@@ -1127,23 +1153,22 @@ export default function AdminPage() {
 Оперативная память: 16 ГБ
 Видеокарта: RTX 2060
 Место на диске: 30 ГБ`}
-                  className="w-full resize-y rounded-xl border border-white/10 bg-[#111120] p-3 outline-none focus:border-purple-500"
+                  className={`${inputClass} resize-y`}
                 />
               </div>
 
-              <label className="flex items-center gap-3 text-sm text-gray-300 md:col-span-2">
+              <label className="flex items-center gap-3 text-sm text-[#D0D0D0] md:col-span-2">
                 <input
                   type="checkbox"
                   checked={gameForm.is_published}
                   onChange={(e) =>
                     updateGameForm("is_published", e.target.checked)
                   }
-                  className="h-4 w-4 accent-purple-500"
+                  className="h-4 w-4 accent-[#F07832]"
                 />
 
                 Опубликовать игру сразу
               </label>
-
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -1154,20 +1179,20 @@ export default function AdminPage() {
                   uploadingCover ||
                   uploadingScreenshots
                 }
-                className="rounded-xl bg-purple-600 px-6 py-3 font-semibold hover:bg-purple-500 disabled:opacity-50"
+                className="rounded-xl bg-[#F07832] px-6 py-3 font-semibold text-white transition hover:bg-[#FF8B43] disabled:opacity-50"
               >
                 {savingGame
                   ? "Сохранение..."
                   : editingId
-                  ? "Сохранить изменения"
-                  : "Добавить игру"}
+                    ? "Сохранить изменения"
+                    : "Добавить игру"}
               </button>
 
               {editingId && (
                 <button
                   type="button"
                   onClick={cancelEditing}
-                  className="rounded-xl border border-white/20 px-6 py-3 hover:bg-white/10"
+                  className={secondaryButtonClass}
                 >
                   Отмена
                 </button>
@@ -1182,7 +1207,7 @@ export default function AdminPage() {
           </h3>
 
           {games.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 p-8 text-center text-gray-400">
+            <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-8 text-center text-[#92949A]">
               Игр пока нет. Добавь первую игру с помощью формы выше.
             </div>
           ) : (
@@ -1190,19 +1215,18 @@ export default function AdminPage() {
               {games.map((game) => (
                 <article
                   key={game.id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                  className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
-
                     <div className="flex min-w-0 flex-1 gap-4">
                       {game.image_url ? (
                         <img
                           src={game.image_url}
                           alt={game.title}
-                          className="h-24 w-36 rounded-xl object-cover"
+                          className="h-24 w-36 shrink-0 rounded-xl object-cover"
                         />
                       ) : (
-                        <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-xl bg-purple-900/40 text-3xl">
+                        <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-xl bg-[#F07832]/10 text-3xl">
                           🎮
                         </div>
                       )}
@@ -1212,19 +1236,19 @@ export default function AdminPage() {
                           {game.title}
                         </h4>
 
-                        <p className="mt-1 text-sm text-purple-300">
+                        <p className="mt-1 text-sm text-[#F07832]">
                           {game.genre}
                         </p>
 
-                        <p className="mt-2 text-sm text-gray-400">
+                        <p className="mt-2 text-sm text-[#92949A]">
                           Цена: {game.price}
                         </p>
 
-                        <p className="mt-1 text-sm text-gray-400">
+                        <p className="mt-1 text-sm text-[#92949A]">
                           Скриншотов: {(game.screenshots || []).length}
                         </p>
 
-                        <p className="mt-1 text-sm text-gray-400">
+                        <p className="mt-1 text-sm text-[#92949A]">
                           Системные требования:{" "}
                           {game.system_requirements?.trim()
                             ? "Заполнены"
@@ -1234,8 +1258,8 @@ export default function AdminPage() {
                         <span
                           className={`mt-2 inline-block rounded-full px-3 py-1 text-xs ${
                             game.is_published
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-yellow-500/20 text-yellow-300"
+                              ? "bg-green-500/15 text-green-300"
+                              : "bg-yellow-500/15 text-yellow-300"
                           }`}
                         >
                           {game.is_published
@@ -1248,21 +1272,21 @@ export default function AdminPage() {
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => startEditing(game)}
-                        className="rounded-lg bg-blue-700 px-3 py-2 text-sm hover:bg-blue-600"
+                        className="rounded-lg border border-[#303236] px-3 py-2 text-sm transition hover:border-[#F07832] hover:bg-[#F07832]/10"
                       >
                         Изменить
                       </button>
 
                       <button
                         onClick={() => togglePublication(game)}
-                        className="rounded-lg bg-purple-700 px-3 py-2 text-sm hover:bg-purple-600"
+                        className="rounded-lg bg-[#F07832] px-3 py-2 text-sm text-white transition hover:bg-[#FF8B43]"
                       >
                         {game.is_published ? "Снять" : "Опубликовать"}
                       </button>
 
                       <button
                         onClick={() => deleteGame(game)}
-                        className="rounded-lg bg-red-700 px-3 py-2 text-sm hover:bg-red-600"
+                        className="rounded-lg bg-red-800 px-3 py-2 text-sm text-white transition hover:bg-red-700"
                       >
                         Удалить
                       </button>
@@ -1270,14 +1294,14 @@ export default function AdminPage() {
                   </div>
 
                   {game.description && (
-                    <p className="mt-4 whitespace-pre-wrap text-sm text-gray-400">
+                    <p className="mt-4 whitespace-pre-wrap text-sm text-[#92949A]">
                       {game.description}
                     </p>
                   )}
 
                   {(game.screenshots || []).length > 0 && (
                     <div className="mt-4">
-                      <p className="mb-2 text-sm text-gray-400">
+                      <p className="mb-2 text-sm text-[#92949A]">
                         Скриншоты:
                       </p>
 
@@ -1287,7 +1311,7 @@ export default function AdminPage() {
                             key={`${url}-${index}`}
                             src={url}
                             alt={`Скриншот ${index + 1}`}
-                            className="h-24 w-full rounded-lg object-cover"
+                            className="h-24 w-full rounded-lg border border-[#303236] object-cover"
                           />
                         ))}
                       </div>
@@ -1310,32 +1334,32 @@ export default function AdminPage() {
             <button
               onClick={loadManagedUsers}
               disabled={usersLoading}
-              className="rounded-xl border border-white/10 px-4 py-2 hover:bg-white/10 disabled:opacity-50"
+              className={`${secondaryButtonClass} disabled:opacity-50`}
             >
               {usersLoading ? "Загрузка..." : "Обновить список"}
             </button>
           </div>
 
-          <div className="mb-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="mb-5 rounded-2xl border border-[#303236] bg-[#1B1D20] p-4">
             <input
               type="text"
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
               placeholder="Поиск по имени или email..."
-              className="w-full rounded-xl border border-white/10 bg-[#111120] p-3 outline-none focus:border-purple-500"
+              className={inputClass}
             />
 
-            <p className="mt-3 text-sm text-gray-400">
+            <p className="mt-3 text-sm text-[#92949A]">
               Всего аккаунтов: {managedUsers.length} · Найдено: {filteredUsers.length}
             </p>
           </div>
 
           {usersLoading && managedUsers.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 p-8 text-center text-gray-400">
+            <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-8 text-center text-[#92949A]">
               Загружаем пользователей...
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 p-8 text-center text-gray-400">
+            <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-8 text-center text-[#92949A]">
               Пользователи не найдены.
             </div>
           ) : (
@@ -1351,7 +1375,7 @@ export default function AdminPage() {
                 return (
                   <article
                     key={user.id}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                    className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-5"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
@@ -1359,16 +1383,16 @@ export default function AdminPage() {
                           {user.full_name || "Без имени"}
                         </h3>
 
-                        <p className="mt-2 break-all text-sm text-gray-400">
+                        <p className="mt-2 break-all text-sm text-[#92949A]">
                           Email: {user.email || "Не указан"}
                         </p>
 
-                        <p className="mt-2 text-xs text-gray-500">
+                        <p className="mt-2 text-xs text-[#777A80]">
                           Дата регистрации:{" "}
                           {new Date(user.created_at).toLocaleString("ru-RU")}
                         </p>
 
-                        <p className="mt-1 text-xs text-gray-500">
+                        <p className="mt-1 text-xs text-[#777A80]">
                           Последняя активность:{" "}
                           {user.last_sign_in_at
                             ? new Date(user.last_sign_in_at).toLocaleString("ru-RU")
@@ -1376,7 +1400,7 @@ export default function AdminPage() {
                         </p>
 
                         {isSelf && (
-                          <p className="mt-2 text-xs text-purple-300">
+                          <p className="mt-2 text-xs text-[#F07832]">
                             Это ваш аккаунт
                           </p>
                         )}
@@ -1386,8 +1410,8 @@ export default function AdminPage() {
                         <span
                           className={`rounded-full px-3 py-1 text-xs ${
                             user.is_admin
-                              ? "bg-purple-500/20 text-purple-300"
-                              : "bg-white/10 text-gray-300"
+                              ? "bg-[#F07832]/15 text-[#F5B184]"
+                              : "bg-white/10 text-[#D0D0D0]"
                           }`}
                         >
                           {user.is_admin ? "Администратор" : "Пользователь"}
@@ -1397,7 +1421,7 @@ export default function AdminPage() {
                           className={`rounded-full px-3 py-1 text-xs ${
                             isBanned
                               ? "bg-red-500/20 text-red-300"
-                              : "bg-green-500/20 text-green-300"
+                              : "bg-green-500/15 text-green-300"
                           }`}
                         >
                           {isBanned ? "Заблокирован" : "Активен"}
@@ -1419,7 +1443,7 @@ export default function AdminPage() {
                             updateManagedUser(user.id, "remove_admin")
                           }
                           disabled={isUpdating || isSelf}
-                          className="rounded-lg bg-purple-800 px-3 py-2 text-sm hover:bg-purple-700 disabled:opacity-50"
+                          className="rounded-lg border border-[#F07832]/30 bg-[#F07832]/10 px-3 py-2 text-sm text-[#F5B184] transition hover:bg-[#F07832]/20 disabled:opacity-50"
                         >
                           Снять права администратора
                         </button>
@@ -1429,7 +1453,7 @@ export default function AdminPage() {
                             updateManagedUser(user.id, "make_admin")
                           }
                           disabled={isUpdating}
-                          className="rounded-lg bg-purple-700 px-3 py-2 text-sm hover:bg-purple-600 disabled:opacity-50"
+                          className="rounded-lg bg-[#F07832] px-3 py-2 text-sm text-white transition hover:bg-[#FF8B43] disabled:opacity-50"
                         >
                           Сделать администратором
                         </button>
@@ -1441,7 +1465,7 @@ export default function AdminPage() {
                             updateManagedUser(user.id, "unban")
                           }
                           disabled={isUpdating}
-                          className="rounded-lg bg-green-700 px-3 py-2 text-sm hover:bg-green-600 disabled:opacity-50"
+                          className="rounded-lg bg-green-700 px-3 py-2 text-sm text-white transition hover:bg-green-600 disabled:opacity-50"
                         >
                           Разблокировать
                         </button>
@@ -1452,7 +1476,7 @@ export default function AdminPage() {
                               updateManagedUser(user.id, "ban", "24h")
                             }
                             disabled={isUpdating || user.is_admin || isSelf}
-                            className="rounded-lg bg-red-800 px-3 py-2 text-sm hover:bg-red-700 disabled:opacity-50"
+                            className="rounded-lg bg-red-800 px-3 py-2 text-sm text-white transition hover:bg-red-700 disabled:opacity-50"
                           >
                             Блокировка 24 ч.
                           </button>
@@ -1462,7 +1486,7 @@ export default function AdminPage() {
                               updateManagedUser(user.id, "ban", "7d")
                             }
                             disabled={isUpdating || user.is_admin || isSelf}
-                            className="rounded-lg bg-red-800 px-3 py-2 text-sm hover:bg-red-700 disabled:opacity-50"
+                            className="rounded-lg bg-red-800 px-3 py-2 text-sm text-white transition hover:bg-red-700 disabled:opacity-50"
                           >
                             Блокировка 7 дней
                           </button>
@@ -1472,7 +1496,7 @@ export default function AdminPage() {
                               updateManagedUser(user.id, "ban", "30d")
                             }
                             disabled={isUpdating || user.is_admin || isSelf}
-                            className="rounded-lg bg-red-800 px-3 py-2 text-sm hover:bg-red-700 disabled:opacity-50"
+                            className="rounded-lg bg-red-800 px-3 py-2 text-sm text-white transition hover:bg-red-700 disabled:opacity-50"
                           >
                             Блокировка 30 дней
                           </button>
@@ -1481,13 +1505,13 @@ export default function AdminPage() {
                     </div>
 
                     {isUpdating && (
-                      <p className="mt-3 text-sm text-purple-300">
+                      <p className="mt-3 text-sm text-[#F07832]">
                         Выполняем действие...
                       </p>
                     )}
 
                     {user.is_admin && (
-                      <p className="mt-3 text-xs text-gray-500">
+                      <p className="mt-3 text-xs text-[#777A80]">
                         Администратор не может быть заблокирован, пока ему не снимут права администратора.
                       </p>
                     )}
@@ -1506,7 +1530,7 @@ export default function AdminPage() {
           </h2>
 
           {applications.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 p-8 text-center text-gray-400">
+            <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-8 text-center text-[#92949A]">
               Заявок пока нет.
             </div>
           ) : (
@@ -1514,31 +1538,39 @@ export default function AdminPage() {
               {applications.map((application) => (
                 <article
                   key={application.id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                  className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-5"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h3 className="text-xl font-semibold">
                       {application.studio_name}
                     </h3>
 
-                    <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
+                    <span
+                      className={`rounded-full px-3 py-1 text-sm ${
+                        application.status === "pending"
+                          ? "bg-[#F07832]/15 text-[#F5B184]"
+                          : application.status === "approved"
+                            ? "bg-green-500/15 text-green-300"
+                            : "bg-red-500/15 text-red-300"
+                      }`}
+                    >
                       {application.status === "pending"
                         ? "На рассмотрении"
                         : application.status === "approved"
-                        ? "Одобрена"
-                        : "Отклонена"}
+                          ? "Одобрена"
+                          : "Отклонена"}
                     </span>
                   </div>
 
-                  <p className="mt-3 whitespace-pre-wrap text-gray-300">
+                  <p className="mt-3 whitespace-pre-wrap text-[#D0D0D0]">
                     {application.description}
                   </p>
 
-                  <p className="mt-3 break-all text-xs text-gray-500">
+                  <p className="mt-3 break-all text-xs text-[#777A80]">
                     ID пользователя: {application.user_id}
                   </p>
 
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 text-xs text-[#777A80]">
                     Дата:{" "}
                     {new Date(application.created_at).toLocaleString("ru-RU")}
                   </p>
@@ -1549,7 +1581,7 @@ export default function AdminPage() {
                         onClick={() =>
                           changeStatus(application.id, "approved")
                         }
-                        className="rounded-xl bg-green-700 px-4 py-2 hover:bg-green-600"
+                        className="rounded-xl bg-green-700 px-4 py-2 text-white transition hover:bg-green-600"
                       >
                         Одобрить
                       </button>
@@ -1558,7 +1590,7 @@ export default function AdminPage() {
                         onClick={() =>
                           changeStatus(application.id, "rejected")
                         }
-                        className="rounded-xl bg-red-700 px-4 py-2 hover:bg-red-600"
+                        className="rounded-xl bg-red-700 px-4 py-2 text-white transition hover:bg-red-600"
                       >
                         Отклонить
                       </button>
@@ -1570,6 +1602,16 @@ export default function AdminPage() {
           )}
         </section>
 
+        {/* Нижняя часть */}
+
+        <footer className="mt-12 border-t border-[#303236] pt-6 text-center">
+          <p className="text-sm font-extrabold tracking-[0.3em] text-[#F07832]">
+            VEXORA
+          </p>
+          <p className="mt-2 text-xs text-[#777A80]">
+            ENTER THE GAME. © 2026
+          </p>
+        </footer>
       </div>
     </main>
   );

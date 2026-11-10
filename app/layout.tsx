@@ -15,8 +15,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GamePlatform",
-  description: "Игровая платформа и сообщество игроков",
+  title: {
+    default: "VEXORA — Enter the Game",
+    template: "%s | VEXORA",
+  },
+  description:
+    "VEXORA — игровая платформа для покупки игр, создания собственной библиотеки и общения с игроками.",
+  applicationName: "VEXORA",
+  keywords: [
+    "VEXORA",
+    "игры",
+    "игровой магазин",
+    "игровая платформа",
+    "gaming",
+  ],
+  openGraph: {
+    title: "VEXORA — Enter the Game",
+    description:
+      "Открывай новые игровые миры вместе с VEXORA.",
+    siteName: "VEXORA",
+    locale: "ru_RU",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
