@@ -21,6 +21,7 @@ type FriendEntry = {
   created_at: string;
   presence_status: "online" | "do_not_disturb" | null;
   last_seen: string | null;
+  avatar_url: string | null;
 };
 
 type ChatMessage = {
@@ -57,6 +58,75 @@ const ALLOWED_TYPES = [
   "video/mp4",
   "video/webm",
 ];
+
+const AVATARS = [
+  { id: "fox", emoji: "🦊", color: "#713F12" },
+  { id: "wolf", emoji: "🐺", color: "#374151" },
+  { id: "dragon", emoji: "🐉", color: "#7F1D1D" },
+  { id: "cat", emoji: "🐱", color: "#6B21A8" },
+  { id: "tiger", emoji: "🐯", color: "#9A3412" },
+  { id: "panda", emoji: "🐼", color: "#374151" },
+  { id: "robot", emoji: "🤖", color: "#164E63" },
+  { id: "ghost", emoji: "👻", color: "#4B5563" },
+  { id: "alien", emoji: "👽", color: "#166534" },
+  { id: "knight", emoji: "🛡️", color: "#1E3A8A" },
+  { id: "crown", emoji: "👑", color: "#854D0E" },
+  { id: "fire", emoji: "🔥", color: "#9A3412" },
+];
+
+function Avatar({
+  value,
+  name,
+  size = "h-11 w-11",
+  textSize = "text-lg",
+}: {
+  value: string | null;
+  name: string | null;
+  size?: string;
+  textSize?: string;
+}) {
+  const displayName = name || "Игрок";
+  const preset = AVATARS.find(
+    (item) => value === `preset:${item.id}`
+  );
+
+  if (preset) {
+    return (
+      <div
+        className={`${size} flex shrink-0 items-center justify-center overflow-hidden rounded-2xl`}
+        style={{ background: preset.color }}
+        title={preset.id}
+      >
+        <span className={textSize}>{preset.emoji}</span>
+      </div>
+    );
+  }
+
+  if (value && value.startsWith("https://")) {
+    return (
+      <img
+        src={value}
+        alt={`Аватар ${displayName}`}
+        className={`${size} shrink-0 rounded-2xl border object-cover`}
+        style={{ borderColor: "rgba(240,120,50,0.3)" }}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${size} flex shrink-0 items-center justify-center rounded-2xl font-black`}
+      style={{
+        background: "rgba(240,120,50,0.12)",
+        color: C.orange,
+      }}
+    >
+      <span className={textSize}>
+        {displayName.charAt(0).toUpperCase()}
+      </span>
+    </div>
+  );
+}
 
 function getPresence(friend: FriendEntry) {
   if (!friend.last_seen) return "offline";
@@ -116,6 +186,7 @@ function Logo() {
 
 export default function MessagesPage() {
   const [userId, setUserId] = useState<string | null>(null);
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [friends, setFriends] = useState<FriendEntry[]>([]);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(
     null
@@ -136,7 +207,7 @@ export default function MessagesPage() {
   const selectedFriend =
     friends.find((friend) => friend.friend_id === selectedFriendId) || null;
 
-  // Создание временного предпросмотра выбранного файла
+  // Предпросмотр выбранного файла
   useEffect(() => {
     if (!selectedFile) {
       setPreviewUrl(null);
@@ -151,7 +222,7 @@ export default function MessagesPage() {
     };
   }, [selectedFile]);
 
-  // Получение временной ссылки на приватный файл
+  // Получение временной ссылки на приватное вложение
   const addSignedUrl = useCallback(async (message: ChatMessage) => {
     if (!message.media_path) {
       return { ...message, media_url: null };
@@ -210,7 +281,7 @@ export default function MessagesPage() {
     }
   }, [userId, selectedFriendId, addSignedUrl]);
 
-  // Инициализация
+  // Инициализация страницы
   useEffect(() => {
     let active = true;
 
@@ -227,19 +298,36 @@ export default function MessagesPage() {
           return;
         }
 
-        setUserId(authData.user.id);
+        const currentUserId = authData.user.id;
 
-        const { data, error } = await supabase.rpc("get_friend_data");
+        setUserId(currentUserId);
+
+        // Загружаем собственную аватарку и друзей
+        const [
+          { data: friendsData, error: friendsError },
+          { data: profileData },
+        ] = await Promise.all([
+          supabase.rpc("get_friend_data_with_avatars"),
+          supabase
+            .from("profiles")
+            .select("avatar_url")
+            .eq("id", currentUserId)
+            .maybeSingle(),
+        ]);
 
         if (!active) return;
 
-        if (error) {
-          setNotice("Не удалось загрузить друзей: " + error.message);
+        if (friendsError) {
+          setNotice("Не удалось загрузить друзей: " + friendsError.message);
           setLoading(false);
           return;
         }
 
-        const acceptedFriends = ((data || []) as FriendEntry[]).filter(
+        setMyAvatarUrl(profileData?.avatar_url || null);
+
+        const acceptedFriends = (
+          (friendsData || []) as FriendEntry[]
+        ).filter(
           (friend) =>
             friend.direction === "friend" &&
             friend.status === "accepted"
@@ -404,14 +492,12 @@ export default function MessagesPage() {
       let mediaName: string | null = null;
       let mediaSize: number | null = null;
 
-      // Сначала загружаем файл, если он выбран
       if (selectedFile) {
         const safeName = selectedFile.name
           .replace(/[^a-zA-Z0-9._-]/g, "_")
           .slice(-100);
 
         const uniqueName = `${crypto.randomUUID()}-${safeName}`;
-
         const path = `${userId}/${selectedFriendId}/${uniqueName}`;
 
         const { error: uploadError } = await supabase.storage
@@ -422,9 +508,7 @@ export default function MessagesPage() {
           });
 
         if (uploadError) {
-          setNotice(
-            "Не удалось загрузить файл: " + uploadError.message
-          );
+          setNotice("Не удалось загрузить файл: " + uploadError.message);
           return;
         }
 
@@ -435,7 +519,6 @@ export default function MessagesPage() {
         mediaSize = selectedFile.size;
       }
 
-      // Сохраняем сообщение в базе
       const { data, error } = await supabase
         .from("messages")
         .insert({
@@ -452,7 +535,6 @@ export default function MessagesPage() {
         .single();
 
       if (error) {
-        // Если сообщение не сохранилось, удаляем загруженный файл
         if (uploadedPath) {
           await supabase.storage
             .from("chat-media")
@@ -765,17 +847,13 @@ export default function MessagesPage() {
                         />
                       )}
 
-                      <div
-                        className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-black"
-                        style={{
-                          background: "rgba(240,120,50,0.12)",
-                          color: C.orange,
-                          border: "1px solid rgba(240,120,50,0.15)",
-                        }}
-                      >
-                        {(friend.full_name || "И")
-                          .charAt(0)
-                          .toUpperCase()}
+                      <div className="relative shrink-0">
+                        <Avatar
+                          value={friend.avatar_url}
+                          name={friend.full_name}
+                          size="h-12 w-12"
+                          textSize="text-xl"
+                        />
 
                         <span
                           className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-[3px]"
@@ -857,17 +935,12 @@ export default function MessagesPage() {
                   }}
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <div
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-black"
-                      style={{
-                        background: "rgba(240,120,50,0.12)",
-                        color: C.orange,
-                      }}
-                    >
-                      {(selectedFriend.full_name || "И")
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
+                    <Avatar
+                      value={selectedFriend.avatar_url}
+                      name={selectedFriend.full_name}
+                      size="h-11 w-11"
+                      textSize="text-lg"
+                    />
 
                     <div className="min-w-0">
                       <h2 className="truncate font-black">
@@ -988,6 +1061,14 @@ export default function MessagesPage() {
                             .toDateString() !==
                             new Date(message.created_at).toDateString();
 
+                        const messageAvatar = mine
+                          ? myAvatarUrl
+                          : selectedFriend.avatar_url;
+
+                        const messageAuthor = mine
+                          ? "Вы"
+                          : selectedFriend.full_name || "Игрок";
+
                         return (
                           <div key={message.id}>
                             {showDate && (
@@ -1006,10 +1087,19 @@ export default function MessagesPage() {
                             )}
 
                             <div
-                              className={`flex ${
+                              className={`flex items-end gap-2 ${
                                 mine ? "justify-end" : "justify-start"
                               }`}
                             >
+                              {!mine && (
+                                <Avatar
+                                  value={messageAvatar}
+                                  name={messageAuthor}
+                                  size="h-8 w-8"
+                                  textSize="text-sm"
+                                />
+                              )}
+
                               <div className="max-w-[88%] sm:max-w-[72%]">
                                 <div
                                   className="overflow-hidden rounded-2xl shadow-lg"
@@ -1046,8 +1136,7 @@ export default function MessagesPage() {
                                         <img
                                           src={message.media_url}
                                           alt={
-                                            message.media_name ||
-                                            "Вложение"
+                                            message.media_name || "Вложение"
                                           }
                                           className="max-h-[420px] w-full object-contain"
                                           loading="lazy"
@@ -1081,8 +1170,7 @@ export default function MessagesPage() {
                                           : C.muted,
                                       }}
                                     >
-                                      {message.media_name ||
-                                        "Вложение"}
+                                      {message.media_name || "Вложение"}
                                     </div>
                                   )}
 
@@ -1124,6 +1212,15 @@ export default function MessagesPage() {
                                     </p>
                                   )}
                               </div>
+
+                              {mine && (
+                                <Avatar
+                                  value={messageAvatar}
+                                  name={messageAuthor}
+                                  size="h-8 w-8"
+                                  textSize="text-sm"
+                                />
+                              )}
                             </div>
                           </div>
                         );

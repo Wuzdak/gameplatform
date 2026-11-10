@@ -18,6 +18,7 @@ type FriendEntry = {
   created_at: string;
   presence_status: "online" | "do_not_disturb" | null;
   last_seen: string | null;
+  avatar_url: string | null;
 };
 
 type PresenceStatus = "online" | "do_not_disturb";
@@ -37,6 +38,67 @@ const C = {
   text: "#E7E7E7",
   muted: "#92949A",
 };
+
+const AVATARS = [
+  { id: "fox", emoji: "🦊", color: "#713F12" },
+  { id: "wolf", emoji: "🐺", color: "#374151" },
+  { id: "dragon", emoji: "🐉", color: "#7F1D1D" },
+  { id: "cat", emoji: "🐱", color: "#6B21A8" },
+  { id: "tiger", emoji: "🐯", color: "#9A3412" },
+  { id: "panda", emoji: "🐼", color: "#374151" },
+  { id: "robot", emoji: "🤖", color: "#164E63" },
+  { id: "ghost", emoji: "👻", color: "#4B5563" },
+  { id: "alien", emoji: "👽", color: "#166534" },
+  { id: "knight", emoji: "🛡️", color: "#1E3A8A" },
+  { id: "crown", emoji: "👑", color: "#854D0E" },
+  { id: "fire", emoji: "🔥", color: "#9A3412" },
+];
+
+function Avatar({
+  value,
+  name,
+}: {
+  value: string | null;
+  name: string | null;
+}) {
+  const displayName = name || "Игрок";
+  const preset = AVATARS.find((item) => value === `preset:${item.id}`);
+
+  if (preset) {
+    return (
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-xl"
+        style={{ background: preset.color }}
+        title={displayName}
+      >
+        {preset.emoji}
+      </div>
+    );
+  }
+
+  if (value && value.startsWith("https://")) {
+    return (
+      <img
+        src={value}
+        alt={`Аватар ${displayName}`}
+        className="h-11 w-11 shrink-0 rounded-full border object-cover"
+        style={{ borderColor: "rgba(240,120,50,0.3)" }}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-black"
+      style={{
+        background: "rgba(240,120,50,0.12)",
+        color: C.orange,
+      }}
+    >
+      {displayName.charAt(0).toUpperCase()}
+    </div>
+  );
+}
 
 function getPresence(entry: FriendEntry) {
   if (!entry.last_seen) return "offline";
@@ -108,12 +170,12 @@ export default function FriendsPage() {
   const [searching, setSearching] = useState(false);
   const [myPresence, setMyPresence] = useState<PresenceStatus>("online");
 
-  // Нужен только для пересчёта времени последней активности.
-  // Запросов к базе данных этот таймер не выполняет.
   const [, setPresenceTick] = useState(0);
 
   const loadFriends = useCallback(async () => {
-    const { data, error } = await supabase.rpc("get_friend_data");
+    const { data, error } = await supabase.rpc(
+      "get_friend_data_with_avatars"
+    );
 
     if (error) {
       setMessage("Не удалось загрузить друзей: " + error.message);
@@ -131,7 +193,6 @@ export default function FriendsPage() {
     }
   }, []);
 
-  // Инициализация и подписка Realtime
   useEffect(() => {
     let active = true;
     let presenceChannel: ReturnType<typeof supabase.channel> | null = null;
@@ -150,8 +211,6 @@ export default function FriendsPage() {
 
       setUserId(currentUserId);
 
-      // Подписываемся на изменения статусов
-      // до первоначальной загрузки списка друзей.
       presenceChannel = supabase
         .channel(`user-presence-${currentUserId}`)
         .on(
@@ -178,12 +237,10 @@ export default function FriendsPage() {
                 ? record.last_seen
                 : null;
 
-            // Обновляем собственный статус
             if (record.user_id === currentUserId) {
               setMyPresence(status);
             }
 
-            // Обновляем только нужного друга
             setFriendsData((current) =>
               current.map((entry) =>
                 entry.friend_id === record.user_id
@@ -200,10 +257,7 @@ export default function FriendsPage() {
         .subscribe((status) => {
           if (!active) return;
 
-          if (
-            status === "CHANNEL_ERROR" ||
-            status === "TIMED_OUT"
-          ) {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
             setMessage(
               "Проблема с подключением Realtime. Проверь соединение."
             );
@@ -212,9 +266,7 @@ export default function FriendsPage() {
 
       await Promise.all([loadFriends(), loadMyPresence()]);
 
-      if (active) {
-        setLoading(false);
-      }
+      if (active) setLoading(false);
     }
 
     initialize();
@@ -228,7 +280,6 @@ export default function FriendsPage() {
     };
   }, [loadFriends, loadMyPresence]);
 
-  // Пересчитываем онлайн/оффлайн без запросов к серверу
   useEffect(() => {
     const interval = setInterval(() => {
       setPresenceTick((value) => value + 1);
@@ -317,10 +368,7 @@ export default function FriendsPage() {
     setBusyId(null);
   }
 
-  async function respondToRequest(
-    requestId: string,
-    accept: boolean
-  ) {
+  async function respondToRequest(requestId: string, accept: boolean) {
     setBusyId(requestId);
     setMessage("");
 
@@ -367,18 +415,15 @@ export default function FriendsPage() {
   }
 
   const incoming = friendsData.filter(
-    (entry) =>
-      entry.direction === "incoming" && entry.status === "pending"
+    (entry) => entry.direction === "incoming" && entry.status === "pending"
   );
 
   const outgoing = friendsData.filter(
-    (entry) =>
-      entry.direction === "outgoing" && entry.status === "pending"
+    (entry) => entry.direction === "outgoing" && entry.status === "pending"
   );
 
   const friends = friendsData.filter(
-    (entry) =>
-      entry.direction === "friend" && entry.status === "accepted"
+    (entry) => entry.direction === "friend" && entry.status === "accepted"
   );
 
   if (loading) {
@@ -400,11 +445,7 @@ export default function FriendsPage() {
       >
         <div className="text-center">
           <div className="text-5xl">👤</div>
-
-          <h1 className="mt-5 text-2xl font-bold">
-            Ты не авторизован
-          </h1>
-
+          <h1 className="mt-5 text-2xl font-bold">Ты не авторизован</h1>
           <a
             href="/auth"
             className="mt-4 block font-semibold transition hover:brightness-125"
@@ -423,7 +464,6 @@ export default function FriendsPage() {
       style={{ background: C.bg }}
     >
       <div className="mx-auto max-w-4xl">
-        {/* LOGO */}
         <a
           href="/"
           className="inline-flex items-center gap-3 text-2xl font-black tracking-wide"
@@ -437,13 +477,11 @@ export default function FriendsPage() {
           >
             V
           </span>
-
           <span>
             VEX<span style={{ color: C.orange }}>ORA</span>
           </span>
         </a>
 
-        {/* PAGE HEADER */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p
@@ -452,11 +490,7 @@ export default function FriendsPage() {
             >
               YOUR COMMUNITY
             </p>
-
-            <h1 className="text-3xl font-black">
-              Мои друзья
-            </h1>
-
+            <h1 className="text-3xl font-black">Мои друзья</h1>
             <p className="mt-2 text-sm" style={{ color: C.muted }}>
               Находи игроков и общайся с ними.
             </p>
@@ -465,27 +499,17 @@ export default function FriendsPage() {
           <a
             href="/profile"
             className="rounded-xl border px-4 py-2 text-sm transition hover:bg-white/5"
-            style={{
-              borderColor: C.border,
-              color: C.text,
-            }}
+            style={{ borderColor: C.border, color: C.text }}
           >
             ← Мой профиль
           </a>
         </div>
 
-        {/* MY STATUS */}
         <section
           className="mt-8 rounded-2xl border p-6"
-          style={{
-            background: C.surface,
-            borderColor: C.border,
-          }}
+          style={{ background: C.surface, borderColor: C.border }}
         >
-          <h2 className="text-xl font-bold">
-            Мой статус
-          </h2>
-
+          <h2 className="text-xl font-bold">Мой статус</h2>
           <p className="mt-2 text-sm" style={{ color: C.muted }}>
             Выбери, какой статус будут видеть другие пользователи.
           </p>
@@ -519,7 +543,6 @@ export default function FriendsPage() {
           </div>
         </section>
 
-        {/* MESSAGE */}
         {message && (
           <div
             className="mt-6 rounded-xl border p-4 text-sm"
@@ -533,13 +556,9 @@ export default function FriendsPage() {
           </div>
         )}
 
-        {/* SEARCH */}
         <section
           className="mt-6 rounded-2xl border p-6"
-          style={{
-            background: C.surface,
-            borderColor: C.border,
-          }}
+          style={{ background: C.surface, borderColor: C.border }}
         >
           <h2 className="text-xl font-bold">
             <span style={{ color: C.orange }}>⌕</span> Поиск пользователей
@@ -554,10 +573,7 @@ export default function FriendsPage() {
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Введи имя пользователя..."
               className="min-w-0 flex-1 rounded-xl border px-4 py-3 text-white outline-none transition focus:border-orange-500"
-              style={{
-                background: C.bg,
-                borderColor: C.border,
-              }}
+              style={{ background: C.bg, borderColor: C.border }}
             />
 
             <button
@@ -576,21 +592,10 @@ export default function FriendsPage() {
                 <div
                   key={profile.user_id}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
-                  style={{
-                    background: C.bg,
-                    borderColor: C.border,
-                  }}
+                  style={{ background: C.bg, borderColor: C.border }}
                 >
                   <div className="flex items-center gap-3">
-                    <div
-                      className="flex h-11 w-11 items-center justify-center rounded-full text-xl"
-                      style={{
-                        background: "rgba(240,120,50,0.12)",
-                      }}
-                    >
-                      👤
-                    </div>
-
+                    <Avatar value={null} name={profile.full_name} />
                     <span className="font-bold">
                       {profile.full_name || "Игрок"}
                     </span>
@@ -613,13 +618,9 @@ export default function FriendsPage() {
           )}
         </section>
 
-        {/* INCOMING REQUESTS */}
         <section
           className="mt-6 rounded-2xl border p-6"
-          style={{
-            background: C.surface,
-            borderColor: C.border,
-          }}
+          style={{ background: C.surface, borderColor: C.border }}
         >
           <h2 className="text-xl font-bold">
             📩 Входящие заявки ({incoming.length})
@@ -637,27 +638,23 @@ export default function FriendsPage() {
                   className="flex flex-wrap items-center justify-between gap-3 rounded-xl p-4"
                   style={{ background: C.bg }}
                 >
-                  <span className="font-bold">
-                    {entry.full_name || "Игрок"}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <Avatar value={entry.avatar_url} name={entry.full_name} />
+                    <span className="font-bold">{entry.full_name || "Игрок"}</span>
+                  </div>
 
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() =>
-                        respondToRequest(entry.request_id, true)
-                      }
+                      onClick={() => respondToRequest(entry.request_id, true)}
                       disabled={busyId === entry.request_id}
                       className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold transition hover:bg-emerald-500 disabled:opacity-50"
                     >
                       Принять
                     </button>
-
                     <button
                       type="button"
-                      onClick={() =>
-                        respondToRequest(entry.request_id, false)
-                      }
+                      onClick={() => respondToRequest(entry.request_id, false)}
                       disabled={busyId === entry.request_id}
                       className="rounded-lg bg-red-600/80 px-3 py-2 text-sm font-bold transition hover:bg-red-500 disabled:opacity-50"
                     >
@@ -670,13 +667,9 @@ export default function FriendsPage() {
           )}
         </section>
 
-        {/* OUTGOING REQUESTS */}
         <section
           className="mt-6 rounded-2xl border p-6"
-          style={{
-            background: C.surface,
-            borderColor: C.border,
-          }}
+          style={{ background: C.surface, borderColor: C.border }}
         >
           <h2 className="text-xl font-bold">
             📤 Отправленные заявки ({outgoing.length})
@@ -694,26 +687,20 @@ export default function FriendsPage() {
                   className="flex items-center justify-between gap-3 rounded-xl p-4"
                   style={{ background: C.bg }}
                 >
-                  <span className="font-bold">
-                    {entry.full_name || "Игрок"}
-                  </span>
-
-                  <span className="text-sm text-amber-400">
-                    Ожидает ответа
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <Avatar value={entry.avatar_url} name={entry.full_name} />
+                    <span className="font-bold">{entry.full_name || "Игрок"}</span>
+                  </div>
+                  <span className="text-sm text-amber-400">Ожидает ответа</span>
                 </div>
               ))}
             </div>
           )}
         </section>
 
-        {/* FRIENDS */}
         <section
           className="mt-6 rounded-2xl border p-6"
-          style={{
-            background: C.surface,
-            borderColor: C.border,
-          }}
+          style={{ background: C.surface, borderColor: C.border }}
         >
           <h2 className="text-xl font-bold">
             👥 Список друзей ({friends.length})
@@ -733,15 +720,7 @@ export default function FriendsPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-                        style={{
-                          background: "rgba(240,120,50,0.12)",
-                        }}
-                      >
-                        👤
-                      </div>
-
+                      <Avatar value={entry.avatar_url} name={entry.full_name} />
                       <span className="truncate font-bold">
                         {entry.full_name || "Игрок"}
                       </span>
@@ -753,15 +732,12 @@ export default function FriendsPage() {
                       disabled={busyId === entry.friend_id}
                       className="shrink-0 rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
                     >
-                      {busyId === entry.friend_id
-                        ? "Удаление..."
-                        : "Удалить"}
+                      {busyId === entry.friend_id ? "Удаление..." : "Удалить"}
                     </button>
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                     <PresenceLabel entry={entry} />
-
                     <span className="text-xs text-gray-500">
                       {getPresence(entry) === "offline"
                         ? formatLastSeen(entry.last_seen)
@@ -774,7 +750,6 @@ export default function FriendsPage() {
           )}
         </section>
 
-        {/* BACK TO STORE */}
         <a
           href="/"
           className="mt-8 block text-center text-sm transition hover:text-white"
@@ -783,15 +758,10 @@ export default function FriendsPage() {
           ← Вернуться в магазин
         </a>
 
-        {/* FOOTER */}
-        <footer
-          className="mt-12 border-t pt-6 text-center"
-          style={{ borderColor: C.border }}
-        >
+        <footer className="mt-12 border-t pt-6 text-center" style={{ borderColor: C.border }}>
           <p className="text-xs font-black tracking-widest">
             VEX<span style={{ color: C.orange }}>ORA</span>
           </p>
-
           <p
             className="mt-2 text-[10px] font-semibold tracking-[0.2em]"
             style={{ color: C.muted }}
