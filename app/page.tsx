@@ -28,6 +28,7 @@ type Game = {
   genre: string;
   price: number;
   image_url: string | null;
+  launch_url: string | null;
   is_published: boolean;
   created_at: string;
 };
@@ -299,6 +300,7 @@ export default function Home() {
         game_title: game.title,
         genre: game.genre,
         image_url: game.image_url,
+        launch_url: game.launch_url,
       });
 
       if (error) {
