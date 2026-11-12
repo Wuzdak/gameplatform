@@ -21,7 +21,7 @@ const C = {
   surface: "#121A2A",
   surface2: "#19243A",
   border: "#293650",
-  orange: "#3978FF",
+  orange: "#F07832",
   text: "#EDF3FF",
   muted: "#9AA8BD",
 };
@@ -246,7 +246,7 @@ export default function LibraryPage() {
                   className="flex h-9 w-9 items-center justify-center rounded-xl text-lg font-black text-black"
                   style={{
                     background: C.orange,
-                    boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
+                    boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
                   }}
                 >
                   V
@@ -455,7 +455,7 @@ export default function LibraryPage() {
             className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition hover:bg-white/5"
             style={{
               color: C.orange,
-              background: "rgba(57,120,255,0.08)",
+              background: "rgba(240,120,50,0.08)",
             }}
           >
             <span className="w-5 text-center text-lg">▤</span>
@@ -751,7 +751,7 @@ export default function LibraryPage() {
                     <div
                       className="relative h-52 overflow-hidden"
                       style={{
-                        background: "linear-gradient(135deg,#1B2A45,#121A2A)",
+                        background: "linear-gradient(135deg,#292B2F,#121A2A)",
                       }}
                     >
                       {game.image_url && (
@@ -787,7 +787,7 @@ export default function LibraryPage() {
 
                       <span
                         className="absolute bottom-4 left-4 text-xs font-bold"
-                        style={{ color: "#C9D8FF" }}
+                        style={{ color: "#FFD0AE" }}
                       >
                         {game.genre}
                       </span>
@@ -841,7 +841,7 @@ export default function LibraryPage() {
                             Добавлена
                           </p>
 
-                          <p className="mt-1 text-sm font-semibold" style={{ color: "#B8CEFF" }}>
+                          <p className="mt-1 text-sm font-semibold" style={{ color: "#F5B184" }}>
                             {new Date(game.acquired_at).toLocaleDateString("ru-RU")}
                           </p>
                         </div>
@@ -849,7 +849,7 @@ export default function LibraryPage() {
                         <span
                           className="flex h-9 w-9 items-center justify-center rounded-lg text-lg"
                           style={{
-                            background: "rgba(57,120,255,0.1)",
+                            background: "rgba(240,120,50,0.1)",
                             color: C.orange,
                           }}
                         >
