@@ -388,7 +388,7 @@ function GamePageContent() {
       <header className="sticky top-0 z-40 border-b border-[#293650] bg-[#0A0E18]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <a href="/" className="flex shrink-0 items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#3978FF] text-lg font-black text-white">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F07832] text-lg font-black text-white">
               V
             </span>
             <span className="text-2xl font-black tracking-tight">
@@ -397,20 +397,20 @@ function GamePageContent() {
           </a>
 
           <nav className="hidden items-center gap-7 text-sm text-[#9AA8BD] md:flex">
-            <a href="/" className="transition hover:text-[#3978FF]">
+            <a href="/" className="transition hover:text-[#F07832]">
               Главная
             </a>
-            <a href="/library" className="transition hover:text-[#3978FF]">
+            <a href="/library" className="transition hover:text-[#F07832]">
               Библиотека
             </a>
-            <a href="/profile" className="transition hover:text-[#3978FF]">
+            <a href="/profile" className="transition hover:text-[#F07832]">
               Профиль
             </a>
           </nav>
 
           <a
             href="/library"
-            className="rounded-lg border border-[#293650] bg-[#121A2A] px-4 py-2.5 text-sm font-semibold transition hover:border-[#3978FF]/50 hover:bg-[#19243A]"
+            className="rounded-lg border border-[#293650] bg-[#121A2A] px-4 py-2.5 text-sm font-semibold transition hover:border-[#F07832]/50 hover:bg-[#19243A]"
           >
             Моя библиотека
           </a>
@@ -420,7 +420,7 @@ function GamePageContent() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
         <a
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-[#9AA8BD] transition hover:text-[#3978FF]"
+          className="inline-flex items-center gap-2 text-sm text-[#9AA8BD] transition hover:text-[#F07832]"
         >
           <span>←</span>
           Вернуться в каталог
@@ -428,7 +428,7 @@ function GamePageContent() {
 
         {loading && (
           <div className="flex min-h-[450px] flex-col items-center justify-center gap-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#293650] border-t-[#3978FF]" />
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#293650] border-t-[#F07832]" />
             <p className="text-sm text-[#9AA8BD]">
               Загружаем информацию об игре...
             </p>
@@ -442,7 +442,7 @@ function GamePageContent() {
             <p className="mt-3 text-sm text-red-300">{error}</p>
             <a
               href="/"
-              className="mt-6 inline-flex rounded-lg bg-[#3978FF] px-6 py-3 font-bold text-white transition hover:bg-[#3978FF]"
+              className="mt-6 inline-flex rounded-lg bg-[#F07832] px-6 py-3 font-bold text-white transition hover:bg-[#F07832]"
             >
               Вернуться на главную
             </a>
@@ -478,7 +478,7 @@ function GamePageContent() {
               {/* GAME INFO */}
               <div className="flex flex-col justify-center">
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <span className="rounded-md bg-[#3978FF]/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#3978FF]">
+                  <span className="rounded-md bg-[#F07832]/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#F07832]">
                     VEXORA GAME
                   </span>
 
@@ -494,7 +494,7 @@ function GamePageContent() {
                 </h1>
 
                 <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <span className="text-2xl tracking-wider text-[#3978FF]">
+                  <span className="text-2xl tracking-wider text-[#F07832]">
                     {"★".repeat(roundedRating)}
                     {"☆".repeat(5 - roundedRating)}
                   </span>
@@ -507,7 +507,7 @@ function GamePageContent() {
 
                   <a
                     href="#reviews"
-                    className="rounded-lg border border-[#3978FF]/30 bg-[#3978FF]/10 px-3 py-2 text-xs font-bold text-[#3978FF] transition hover:border-[#3978FF] hover:bg-[#3978FF]/20"
+                    className="rounded-lg border border-[#F07832]/30 bg-[#F07832]/10 px-3 py-2 text-xs font-bold text-[#F07832] transition hover:border-[#F07832] hover:bg-[#F07832]/20"
                   >
                     Читать отзывы ↓
                   </a>
@@ -545,7 +545,7 @@ function GamePageContent() {
                     className={`mt-5 w-full rounded-xl px-6 py-4 font-bold transition ${
                       inLibrary
                         ? "cursor-default border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                        : "bg-[#3978FF] text-white shadow-lg shadow-[#3978FF]/10 hover:bg-[#3978FF] disabled:cursor-wait disabled:opacity-60"
+                        : "bg-[#F07832] text-white shadow-lg shadow-[#F07832]/10 hover:bg-[#F07832] disabled:cursor-wait disabled:opacity-60"
                     }`}
                   >
                     {adding
@@ -563,8 +563,8 @@ function GamePageContent() {
                     disabled={savingWishlist}
                     className={`mt-3 w-full rounded-xl border px-6 py-3 font-bold transition disabled:cursor-wait disabled:opacity-60 ${
                       inWishlist
-                        ? "border-[#3978FF]/40 bg-[#3978FF]/10 text-[#9DBEFF] hover:bg-[#3978FF]/20"
-                        : "border-[#45484D] bg-[#19243A] text-[#EDF3FF] hover:border-[#3978FF]/50 hover:text-[#9DBEFF]"
+                        ? "border-[#F07832]/40 bg-[#F07832]/10 text-[#F6A16E] hover:bg-[#F07832]/20"
+                        : "border-[#45484D] bg-[#19243A] text-[#EDF3FF] hover:border-[#F07832]/50 hover:text-[#F6A16E]"
                     }`}
                   >
                     {savingWishlist
@@ -593,7 +593,7 @@ function GamePageContent() {
             {(game.developer || game.publisher || game.release_date) && (
               <section className="mt-12">
                 <div className="mb-5">
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#3978FF]">Карточка игры</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">Карточка игры</p>
                   <h2 className="mt-2 text-2xl font-black">Подробнее об игре</h2>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -615,7 +615,7 @@ function GamePageContent() {
             {trailerEmbedUrl && (
               <section className="mt-16">
                 <div className="mb-6">
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#3978FF]">Видео</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">Видео</p>
                   <h2 className="mt-2 text-2xl font-black">Трейлер игры</h2>
                 </div>
                 <div className="overflow-hidden rounded-2xl border border-[#293650] bg-black shadow-xl shadow-black/20">
@@ -638,7 +638,7 @@ function GamePageContent() {
               <section className="mt-16">
                 <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-[#3978FF]">
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">
                       Галерея
                     </p>
                     <h2 className="mt-2 text-2xl font-black">
@@ -658,7 +658,7 @@ function GamePageContent() {
                       type="button"
                       onClick={() => setSelectedScreenshot(url)}
                       aria-label={`Открыть скриншот ${index + 1} игры ${game.title}`}
-                      className="group relative aspect-video overflow-hidden rounded-xl border border-[#293650] bg-[#121A2A] text-left shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-[#3978FF]/60 hover:shadow-[#3978FF]/10"
+                      className="group relative aspect-video overflow-hidden rounded-xl border border-[#293650] bg-[#121A2A] text-left shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-[#F07832]/60 hover:shadow-[#F07832]/10"
                     >
                       <img
                         src={url}
@@ -682,7 +682,7 @@ function GamePageContent() {
             {/* SYSTEM REQUIREMENTS */}
             <section className="mt-16">
               <div className="mb-6">
-                <p className="text-xs font-bold uppercase tracking-widest text-[#3978FF]">
+                <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">
                   Информация
                 </p>
                 <h2 className="mt-2 text-2xl font-black">
@@ -692,7 +692,7 @@ function GamePageContent() {
 
               <div className="rounded-2xl border border-[#293650] bg-[#121A2A] p-6 sm:p-8">
                 <div className="mb-5 flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#3978FF]/10 text-xl">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F07832]/10 text-xl">
                     💻
                   </div>
 
@@ -716,7 +716,7 @@ function GamePageContent() {
             {/* REVIEWS */}
             <section id="reviews" className="mt-16 scroll-mt-24">
               <div className="mb-6">
-                <p className="text-xs font-bold uppercase tracking-widest text-[#3978FF]">
+                <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">
                   Сообщество
                 </p>
                 <h2 className="mt-2 text-2xl font-black">
@@ -738,7 +738,7 @@ function GamePageContent() {
                     </span>
                     <span className="pb-1 text-sm text-[#9AA8BD]">/ 5</span>
                   </div>
-                  <div className="mt-2 text-lg tracking-wider text-[#3978FF]">
+                  <div className="mt-2 text-lg tracking-wider text-[#F07832]">
                     {"★".repeat(roundedRating)}{"☆".repeat(5 - roundedRating)}
                   </div>
                   <p className="mt-2 text-xs text-[#9AA8BD]">
@@ -754,7 +754,7 @@ function GamePageContent() {
                       </span>
                       <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#293650]">
                         <div
-                          className="h-full rounded-full bg-[#3978FF] transition-all duration-500"
+                          className="h-full rounded-full bg-[#F07832] transition-all duration-500"
                           style={{ width: `${item.percentage}%` }}
                         />
                       </div>
@@ -777,7 +777,7 @@ function GamePageContent() {
                       : "Оставить отзыв"}
                   </h3>
 
-                  <span className="rounded-md bg-[#3978FF]/10 px-3 py-1.5 text-xs font-bold text-[#3978FF]">
+                  <span className="rounded-md bg-[#F07832]/10 px-3 py-1.5 text-xs font-bold text-[#F07832]">
                     Ваше мнение важно
                   </span>
                 </div>
@@ -789,7 +789,7 @@ function GamePageContent() {
                 <select
                   value={rating}
                   onChange={(event) => setRating(event.target.value)}
-                  className="mt-3 w-full max-w-xs rounded-xl border border-[#293650] bg-[#19243A] px-4 py-3 text-sm text-white outline-none transition focus:border-[#3978FF]"
+                  className="mt-3 w-full max-w-xs rounded-xl border border-[#293650] bg-[#19243A] px-4 py-3 text-sm text-white outline-none transition focus:border-[#F07832]"
                 >
                   <option value="5">★★★★★ — Отлично</option>
                   <option value="4">★★★★☆ — Хорошо</option>
@@ -808,7 +808,7 @@ function GamePageContent() {
                   maxLength={1000}
                   rows={5}
                   placeholder="Поделись впечатлениями об игре..."
-                  className="mt-3 w-full resize-y rounded-xl border border-[#293650] bg-[#19243A] p-4 text-sm text-white outline-none transition placeholder:text-[#777980] focus:border-[#3978FF]"
+                  className="mt-3 w-full resize-y rounded-xl border border-[#293650] bg-[#19243A] p-4 text-sm text-white outline-none transition placeholder:text-[#777980] focus:border-[#F07832]"
                 />
 
                 <div className="mt-2 text-right text-xs text-[#9AA8BD]">
@@ -818,7 +818,7 @@ function GamePageContent() {
                 <button
                   type="submit"
                   disabled={savingReview}
-                  className="mt-5 rounded-xl bg-[#3978FF] px-7 py-3.5 font-bold text-white transition hover:bg-[#3978FF] disabled:cursor-wait disabled:opacity-50"
+                  className="mt-5 rounded-xl bg-[#F07832] px-7 py-3.5 font-bold text-white transition hover:bg-[#F07832] disabled:cursor-wait disabled:opacity-50"
                 >
                   {savingReview ? "Сохранение..." : "Опубликовать отзыв"}
                 </button>
@@ -828,7 +828,7 @@ function GamePageContent() {
                     Для публикации отзыва необходимо{" "}
                     <a
                       href="/auth"
-                      className="font-semibold text-[#3978FF] hover:underline"
+                      className="font-semibold text-[#F07832] hover:underline"
                     >
                       войти в аккаунт
                     </a>
@@ -869,7 +869,7 @@ function GamePageContent() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#3978FF]/10 font-bold text-[#3978FF]">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F07832]/10 font-bold text-[#F07832]">
                           {review.user_id === userId ? "Я" : "G"}
                         </div>
 
@@ -888,7 +888,7 @@ function GamePageContent() {
                         </div>
                       </div>
 
-                      <span className="text-lg tracking-wider text-[#3978FF]">
+                      <span className="text-lg tracking-wider text-[#F07832]">
                         {"★".repeat(review.rating)}
                         {"☆".repeat(5 - review.rating)}
                       </span>
@@ -909,7 +909,7 @@ function GamePageContent() {
       <footer className="mt-20 border-t border-[#293650] bg-[#0A0E18]">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-4 py-8 sm:flex-row sm:items-center sm:px-6">
           <a href="/" className="flex items-center gap-2 text-xl font-black">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3978FF] text-sm text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F07832] text-sm text-white">
               V
             </span>
             VEXORA
@@ -930,7 +930,7 @@ function GamePageContent() {
           <button
             type="button"
             onClick={() => setSelectedScreenshot(null)}
-            className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#19243A] text-2xl text-white transition hover:bg-[#3978FF]"
+            className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#19243A] text-2xl text-white transition hover:bg-[#F07832]"
             aria-label="Закрыть изображение"
           >
             ×
