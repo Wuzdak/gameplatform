@@ -59,7 +59,7 @@ function Logo({ size = "normal" }: { size?: "normal" | "large" }) {
         }`}
         style={{
           background: "linear-gradient(135deg, #F07832 0%, #FF9A54 100%)",
-          boxShadow: "0 5px 25px rgba(57,120,255,0.22)",
+          boxShadow: "0 5px 25px rgba(240,120,50,0.22)",
         }}
       >
         V
@@ -365,6 +365,12 @@ export default function Home() {
               <Logo />
             </div>
 
+            <nav className="hidden items-center gap-5 xl:flex">
+              <a href="#store" className="text-xs font-bold transition hover:text-white" style={{ color: C.orange }}>Главная</a>
+              <a href="#games" className="text-xs font-semibold transition hover:text-white" style={{ color: C.muted }}>Каталог</a>
+              <a href="#offers" className="text-xs font-semibold transition hover:text-white" style={{ color: C.muted }}>О VEXORA</a>
+            </nav>
+
             <div className="relative mx-auto hidden w-full max-w-xl md:block">
               <span
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-xl"
@@ -381,7 +387,7 @@ export default function Home() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") goToCatalog();
                 }}
-                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-blue-500"
+                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-[#F07832]"
                 style={{
                   background: C.surface,
                   borderColor: C.border,
@@ -678,166 +684,90 @@ export default function Home() {
       </aside>
 
       {/* HERO */}
-      <section id="store" className="relative overflow-hidden">
-        <div
-          className="pointer-events-none absolute -right-40 -top-32 h-[550px] w-[550px] rounded-full blur-[140px]"
-          style={{ background: "rgba(57,120,255,0.10)" }}
-        />
+      <section id="store" className="relative isolate overflow-hidden border-b" style={{ borderColor: C.border }}>
+        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 78% 18%, rgba(240,120,50,.16), transparent 38%), radial-gradient(ellipse at 12% 80%, rgba(240,120,50,.07), transparent 34%)" }} />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.12]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)", backgroundSize: "54px 54px", maskImage: "linear-gradient(to bottom, black, transparent 85%)" }} />
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-20 lg:grid-cols-2 lg:px-8 lg:py-28">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 py-16 sm:py-20 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:py-24">
           <div className="relative z-10">
-            <div
-              className="mb-7 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-widest"
-              style={{
-                background: "rgba(57,120,255,0.08)",
-                borderColor: "rgba(57,120,255,0.25)",
-                color: C.orange,
-              }}
-            >
-              <span>✦</span>
-              Добро пожаловать в VEXORA
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-extrabold uppercase tracking-[.2em]" style={{ background: "rgba(240,120,50,.09)", borderColor: "rgba(240,120,50,.28)", color: "#FF9A54" }}>
+              <span className="flex h-2 w-2 rounded-full" style={{ background: C.orange, boxShadow: "0 0 12px rgba(240,120,50,.8)" }} />
+              Твоя игровая территория
             </div>
 
-            <h1 className="text-5xl font-black leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">
-              Больше игр.
+            <h1 className="max-w-3xl text-5xl font-black leading-[1.02] tracking-[-.055em] sm:text-6xl lg:text-[76px]">
+              Открой мир
               <br />
-              Больше
+              <span style={{ color: C.orange }}>новых игр.</span>
               <br />
-              <span style={{ color: C.orange }}>впечатлений.</span>
+              Играй по-своему.
             </h1>
 
-            <p
-              className="mt-7 max-w-lg text-base leading-8 sm:text-lg"
-              style={{ color: C.muted }}
-            >
-              Открывай новые игровые миры, находи любимые проекты
-              и собирай собственную коллекцию в едином пространстве VEXORA.
+            <p className="mt-7 max-w-xl text-base leading-8 sm:text-lg" style={{ color: C.muted }}>
+              Находи интересные проекты, собирай личную коллекцию и открывай новые возможности вместе с игровым сообществом VEXORA.
             </p>
 
             <div className="mt-9 flex flex-wrap gap-3">
-              <a
-                href="#games"
-                className="rounded-xl px-7 py-4 text-sm font-black text-black transition hover:-translate-y-1 hover:brightness-110"
-                style={{
-                  background: C.orange,
-                  boxShadow: "0 10px 35px rgba(57,120,255,0.18)",
-                }}
-              >
-                Исследовать каталог →
+              <a href="#games" className="group inline-flex items-center gap-3 rounded-xl px-6 py-4 text-sm font-black text-black transition hover:-translate-y-1 hover:brightness-110" style={{ background: C.orange, boxShadow: "0 12px 34px rgba(240,120,50,.2)" }}>
+                Смотреть каталог <span className="transition group-hover:translate-x-1">→</span>
               </a>
-
-              <Link
-                href="/library"
-                className="rounded-xl border px-7 py-4 text-sm font-bold transition hover:bg-white/5"
-                style={{
-                  borderColor: C.border,
-                  background: C.surface,
-                }}
-              >
-                Моя библиотека
+              <Link href="/library" className="inline-flex items-center gap-3 rounded-xl border px-6 py-4 text-sm font-bold transition hover:border-white/25 hover:bg-white/[.06]" style={{ borderColor: C.border, background: "rgba(18,26,42,.72)" }}>
+                <span style={{ color: C.orange }}>▤</span> Моя библиотека
               </Link>
             </div>
 
-            <div className="mt-12 flex flex-wrap gap-8">
+            <div className="mt-12 grid max-w-lg grid-cols-3 border-t pt-7" style={{ borderColor: C.border }}>
               <div>
-                <p className="text-2xl font-black">{games.length}+</p>
-                <p className="mt-1 text-xs" style={{ color: C.muted }}>
-                  Игр в каталоге
-                </p>
+                <p className="text-2xl font-black sm:text-3xl">{games.length}</p>
+                <p className="mt-1 text-[11px] font-semibold sm:text-xs" style={{ color: C.muted }}>Игр в каталоге</p>
               </div>
-
-              <div>
-                <p className="text-2xl font-black">24/7</p>
-                <p className="mt-1 text-xs" style={{ color: C.muted }}>
-                  Доступ к коллекции
-                </p>
+              <div className="border-l pl-5" style={{ borderColor: C.border }}>
+                <p className="text-2xl font-black sm:text-3xl">24/7</p>
+                <p className="mt-1 text-[11px] font-semibold sm:text-xs" style={{ color: C.muted }}>Твоя коллекция</p>
               </div>
-
-              <div>
-                <p className="text-2xl font-black">V</p>
-                <p className="mt-1 text-xs" style={{ color: C.muted }}>
-                  Enter the Game
-                </p>
+              <div className="border-l pl-5" style={{ borderColor: C.border }}>
+                <p className="text-2xl font-black sm:text-3xl" style={{ color: C.orange }}>V.</p>
+                <p className="mt-1 text-[11px] font-semibold sm:text-xs" style={{ color: C.muted }}>Enter the game</p>
               </div>
             </div>
           </div>
 
-          {/* HERO ART */}
-          <div className="relative mx-auto w-full max-w-xl">
-            <div
-              className="absolute inset-8 rounded-full blur-[90px]"
-              style={{ background: "rgba(57,120,255,0.16)" }}
-            />
+          <div className="relative mx-auto w-full max-w-[560px]">
+            <div className="absolute inset-[12%] rounded-full blur-[90px]" style={{ background: "rgba(240,120,50,.2)" }} />
+            <div className="relative overflow-hidden rounded-[30px] border p-5 sm:p-7" style={{ minHeight: 430, borderColor: "rgba(255,255,255,.12)", background: "linear-gradient(145deg, rgba(38,34,32,.96), rgba(18,22,30,.98) 58%, rgba(10,14,24,.98))", boxShadow: "0 35px 100px rgba(0,0,0,.45)" }}>
+              <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full border" style={{ borderColor: "rgba(240,120,50,.22)" }} />
+              <div className="absolute -right-8 -top-12 h-52 w-52 rounded-full border" style={{ borderColor: "rgba(240,120,50,.16)" }} />
+              <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full border" style={{ borderColor: "rgba(255,255,255,.08)" }} />
+              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(135deg, transparent 48%, rgba(240,120,50,.3) 48.2%, transparent 48.6%)", backgroundSize: "38px 38px" }} />
 
-            <div
-              className="relative flex aspect-[5/4] items-center justify-center overflow-hidden rounded-3xl border"
-              style={{
-                borderColor: "#38332F",
-                background:
-                  "radial-gradient(ellipse at 65% 35%, #63402C 0%, #30251F 35%, #19191A 75%, #0A0E18 100%)",
-                boxShadow: "0 30px 100px rgba(0,0,0,0.45)",
-              }}
-            >
-              <div
-                className="absolute inset-0 opacity-30"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, transparent 45%, rgba(57,120,255,0.15) 45.2%, transparent 45.5%)",
-                  backgroundSize: "45px 45px",
-                }}
-              />
-
-              <div
-                className="absolute -right-10 -top-10 h-64 w-64 rounded-full border"
-                style={{ borderColor: "rgba(57,120,255,0.25)" }}
-              />
-
-              <div
-                className="absolute -right-1 -top-1 h-48 w-48 rounded-full border"
-                style={{ borderColor: "rgba(57,120,255,0.2)" }}
-              />
-
-              <div
-                className="absolute -bottom-20 -left-10 h-72 w-72 rounded-full border"
-                style={{ borderColor: "rgba(255,255,255,0.08)" }}
-              />
-
-              <div className="relative z-10 text-center">
-                <div
-                  className="mx-auto flex h-28 w-28 items-center justify-center rounded-3xl border text-6xl font-black sm:h-36 sm:w-36 sm:text-7xl"
-                  style={{
-                    color: C.orange,
-                    borderColor: "rgba(57,120,255,0.35)",
-                    background: "rgba(17,18,20,0.65)",
-                    boxShadow: "0 0 65px rgba(57,120,255,0.18)",
-                  }}
-                >
-                  V
-                </div>
-
-                <p className="mt-7 text-2xl font-black sm:text-3xl">
-                  ENTER THE GAME
-                </p>
-
-                <p
-                  className="mt-3 text-xs font-bold tracking-[0.35em]"
-                  style={{ color: C.orange }}
-                >
-                  VEXORA GAMING STORE
-                </p>
+              <div className="relative flex items-center justify-between">
+                <span className="text-[10px] font-black tracking-[.3em]" style={{ color: C.muted }}>VEXORA / DISCOVER</span>
+                <span className="rounded-full border px-3 py-1 text-[10px] font-bold" style={{ borderColor: "rgba(240,120,50,.3)", color: "#FF9A54", background: "rgba(240,120,50,.08)" }}>GAME SPACE</span>
               </div>
 
-              <div
-                className="absolute bottom-5 left-5 rounded-xl border px-4 py-3 backdrop-blur-xl"
-                style={{
-                  borderColor: "rgba(255,255,255,0.1)",
-                  background: "rgba(17,18,20,0.75)",
-                }}
-              >
-                <p className="text-xs font-bold">ТВОЯ КОЛЛЕКЦИЯ</p>
-                <p className="mt-1 text-[10px]" style={{ color: C.muted }}>
-                  Всё любимое в одном месте
-                </p>
+              <div className="relative flex min-h-[320px] flex-col items-center justify-center text-center">
+                <div className="absolute h-64 w-64 rounded-full border" style={{ borderColor: "rgba(240,120,50,.18)", boxShadow: "0 0 80px rgba(240,120,50,.08)" }} />
+                <div className="absolute h-48 w-48 rounded-full border" style={{ borderColor: "rgba(255,255,255,.1)" }} />
+                <div className="relative flex h-32 w-32 items-center justify-center rounded-[30px] border text-7xl font-black text-white sm:h-36 sm:w-36" style={{ borderColor: "rgba(255,154,84,.55)", background: "linear-gradient(145deg, #F07832, #9E4821)", boxShadow: "0 18px 70px rgba(240,120,50,.3)" }}>V</div>
+                <p className="mt-7 text-2xl font-black tracking-[.12em] sm:text-3xl">ENTER THE GAME</p>
+                <p className="mt-2 text-[10px] font-bold tracking-[.35em]" style={{ color: "#FF9A54" }}>PLAY · COLLECT · CONNECT</p>
+              </div>
+
+              <div className="relative flex items-center justify-between gap-3 border-t pt-4" style={{ borderColor: "rgba(255,255,255,.1)" }}>
+                <div>
+                  <p className="text-xs font-bold">ТВОЙ СЛЕДУЮЩИЙ УРОВЕНЬ</p>
+                  <p className="mt-1 text-[10px]" style={{ color: C.muted }}>Начни своё приключение</p>
+                </div>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl text-lg" style={{ background: "rgba(240,120,50,.14)", color: C.orange }}>↗</span>
+              </div>
+
+              <div className="absolute -left-3 top-28 hidden rounded-2xl border px-4 py-3 shadow-2xl sm:block" style={{ background: "#171B23", borderColor: C.border }}>
+                <p className="text-[9px] font-bold tracking-widest" style={{ color: C.muted }}>YOUR LIBRARY</p>
+                <p className="mt-1 text-sm font-black">Твоя коллекция</p>
+              </div>
+              <div className="absolute -right-3 bottom-24 hidden rounded-2xl border px-4 py-3 shadow-2xl sm:block" style={{ background: "#171B23", borderColor: C.border }}>
+                <p className="text-[9px] font-bold tracking-widest" style={{ color: C.muted }}>DISCOVER MORE</p>
+                <p className="mt-1 text-sm font-black" style={{ color: C.orange }}>Новые миры ↗</p>
               </div>
             </div>
           </div>
@@ -850,17 +780,17 @@ export default function Home() {
           <div
             className="relative overflow-hidden rounded-3xl border p-6 sm:p-8"
             style={{
-              background: "linear-gradient(115deg, rgba(57,120,255,0.13), rgba(27,29,32,0.98) 55%)",
-              borderColor: "rgba(57,120,255,0.28)",
+              background: "linear-gradient(115deg, rgba(240,120,50,0.13), rgba(27,29,32,0.98) 55%)",
+              borderColor: "rgba(240,120,50,0.28)",
             }}
           >
-            <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full blur-3xl" style={{ background: "rgba(57,120,255,0.12)" }} />
+            <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full blur-3xl" style={{ background: "rgba(240,120,50,0.12)" }} />
             <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-black uppercase tracking-[0.22em]" style={{ color: C.orange }}>VEXORA PLAYER CLUB</p>
                 <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
                   <h2 className="text-2xl font-black sm:text-3xl">Твой игровой прогресс</h2>
-                  <span className="rounded-full px-3 py-1 text-xs font-black" style={{ color: C.orange, background: "rgba(57,120,255,0.13)" }}>
+                  <span className="rounded-full px-3 py-1 text-xs font-black" style={{ color: C.orange, background: "rgba(240,120,50,0.13)" }}>
                     УРОВЕНЬ {playerProgress?.level ?? 1}
                   </span>
                 </div>
@@ -882,7 +812,7 @@ export default function Home() {
                     <div className="mt-3 space-y-3">
                       {recentAchievements.map((item) => (
                         <div key={item.achievement_id} className="flex items-center gap-3 text-sm">
-                          <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "rgba(57,120,255,0.12)" }}>{item.achievement?.icon ?? "🏆"}</span>
+                          <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "rgba(240,120,50,0.12)" }}>{item.achievement?.icon ?? "🏆"}</span>
                           <span className="truncate font-semibold">{item.achievement?.title ?? "Достижение открыто"}</span>
                         </div>
                       ))}
@@ -1014,7 +944,7 @@ export default function Home() {
                   role="link"
                   tabIndex={0}
                   aria-label={`Открыть страницу игры ${game.title}`}
-                  className="group cursor-pointer overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="group cursor-pointer overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#F07832]"
                   style={{
                     background: C.surface,
                     borderColor: C.border,
@@ -1059,7 +989,7 @@ export default function Home() {
                   </div>
 
                   <div className="p-5">
-                    <h3 className="text-lg font-bold transition group-hover:text-blue-400">
+                    <h3 className="text-lg font-bold transition group-hover:text-[#FF9A54]">
                       {game.title}
                     </h3>
 
@@ -1096,7 +1026,7 @@ export default function Home() {
                       <p
                         className="mt-3 rounded-lg p-3 text-xs"
                         style={{
-                          background: "rgba(57,120,255,0.08)",
+                          background: "rgba(240,120,50,0.08)",
                           color: "#F5B184",
                         }}
                       >
@@ -1152,8 +1082,8 @@ export default function Home() {
           className="relative overflow-hidden rounded-3xl border p-8 sm:p-12 lg:p-16"
           style={{
             background:
-              "radial-gradient(ellipse at 90% 20%, rgba(57,120,255,0.20), transparent 45%), #121A2A",
-            borderColor: "rgba(57,120,255,0.25)",
+              "radial-gradient(ellipse at 90% 20%, rgba(240,120,50,0.20), transparent 45%), #121A2A",
+            borderColor: "rgba(240,120,50,0.25)",
           }}
         >
           <div className="absolute -right-10 -top-20 text-[250px] font-black leading-none opacity-[0.04]">
