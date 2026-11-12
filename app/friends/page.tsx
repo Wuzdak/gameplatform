@@ -31,13 +31,13 @@ type PresenceUpdate = {
 };
 
 const C = {
-  bg: "#111214",
-  surface: "#1B1D20",
-  surface2: "#242629",
-  border: "#303236",
-  orange: "#F07832",
-  text: "#E7E7E7",
-  muted: "#92949A",
+  bg: "#0A0E18",
+  surface: "#121A2A",
+  surface2: "#19243A",
+  border: "#293650",
+  orange: "#3978FF",
+  text: "#EDF3FF",
+  muted: "#9AA8BD",
 };
 
 const AVATARS = [
@@ -83,7 +83,7 @@ function Avatar({
         src={value}
         alt={`Аватар ${displayName}`}
         className="h-11 w-11 shrink-0 rounded-full border object-cover"
-        style={{ borderColor: "rgba(240,120,50,0.3)" }}
+        style={{ borderColor: "rgba(57,120,255,0.3)" }}
       />
     );
   }
@@ -92,7 +92,7 @@ function Avatar({
     <div
       className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-black"
       style={{
-        background: "rgba(240,120,50,0.12)",
+        background: "rgba(57,120,255,0.12)",
         color: C.orange,
       }}
     >
@@ -477,7 +477,7 @@ export default function FriendsPage() {
             className="flex h-10 w-10 items-center justify-center rounded-xl text-black"
             style={{
               background: C.orange,
-              boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
+              boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
             }}
           >
             V
@@ -545,7 +545,7 @@ export default function FriendsPage() {
               className={`rounded-xl border px-5 py-3 font-bold transition disabled:opacity-50 ${
                 myPresence === "online"
                   ? "border-emerald-400/50 bg-emerald-500/15 text-emerald-300"
-                  : "border-white/10 bg-[#111214] text-gray-400 hover:bg-white/5"
+                  : "border-white/10 bg-[#0A0E18] text-gray-400 hover:bg-white/5"
               }`}
             >
               🟢 В сети
@@ -558,7 +558,7 @@ export default function FriendsPage() {
               className={`rounded-xl border px-5 py-3 font-bold transition disabled:opacity-50 ${
                 myPresence === "do_not_disturb"
                   ? "border-red-400/50 bg-red-500/15 text-red-300"
-                  : "border-white/10 bg-[#111214] text-gray-400 hover:bg-white/5"
+                  : "border-white/10 bg-[#0A0E18] text-gray-400 hover:bg-white/5"
               }`}
             >
               🔴 Не беспокоить
@@ -570,9 +570,9 @@ export default function FriendsPage() {
           <div
             className="mt-6 rounded-xl border p-4 text-sm"
             style={{
-              borderColor: "rgba(240,120,50,0.25)",
-              background: "rgba(240,120,50,0.08)",
-              color: "#FFD0AE",
+              borderColor: "rgba(57,120,255,0.25)",
+              background: "rgba(57,120,255,0.08)",
+              color: "#C9D8FF",
             }}
           >
             {message}
@@ -595,7 +595,7 @@ export default function FriendsPage() {
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Введи имя пользователя..."
-              className="min-w-0 flex-1 rounded-xl border px-4 py-3 text-white outline-none transition focus:border-orange-500"
+              className="min-w-0 flex-1 rounded-xl border px-4 py-3 text-white outline-none transition focus:border-blue-500"
               style={{ background: C.bg, borderColor: C.border }}
             />
 
@@ -631,7 +631,7 @@ export default function FriendsPage() {
                       style={{
                         borderColor: C.orange,
                         color: C.orange,
-                        background: "rgba(240,120,50,0.10)",
+                        background: "rgba(57,120,255,0.10)",
                       }}
                     >
                       Открыть профиль
@@ -751,14 +751,14 @@ export default function FriendsPage() {
               {friends.map((entry) => (
                 <div
                   key={entry.request_id}
-                  className="group rounded-xl border p-4 transition duration-200 hover:-translate-y-0.5 hover:border-orange-500/40 hover:bg-white/[0.02]"
+                  className="group rounded-xl border p-4 transition duration-200 hover:-translate-y-0.5 hover:border-blue-500/40 hover:bg-white/[0.02]"
                   style={{ background: C.bg, borderColor: C.border }}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="relative shrink-0">
                         <Avatar value={entry.avatar_url} name={entry.full_name} />
-                        <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#111214] ${getPresence(entry) === "online" ? "bg-emerald-400" : getPresence(entry) === "do_not_disturb" ? "bg-red-400" : "bg-gray-500"}`} />
+                        <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#0A0E18] ${getPresence(entry) === "online" ? "bg-emerald-400" : getPresence(entry) === "do_not_disturb" ? "bg-red-400" : "bg-gray-500"}`} />
                       </div>
                       <div className="min-w-0">
                         <span className="block truncate font-bold">
