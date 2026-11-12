@@ -22,11 +22,11 @@ type ListProfile = {
 };
 
 const C = {
-  bg: "#111214",
-  surface: "#1B1D20",
-  border: "#303236",
-  orange: "#F07832",
-  muted: "#92949A",
+  bg: "#0A0E18",
+  surface: "#121A2A",
+  border: "#293650",
+  orange: "#3978FF",
+  muted: "#9AA8BD",
 };
 
 export default function PublicPlayerClient({ profileId }: { profileId: string }) {
@@ -158,12 +158,12 @@ export default function PublicPlayerClient({ profileId }: { profileId: string })
   }
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#111214] text-white">Загрузка профиля...</main>;
+    return <main className="flex min-h-screen items-center justify-center bg-[#0A0E18] text-white">Загрузка профиля...</main>;
   }
 
   if (!currentUserId) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#111214] px-5 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#0A0E18] px-5 text-white">
         <div className="text-center">
           <h1 className="text-2xl font-black">Войди в VEXORA</h1>
           <p className="mt-2 text-sm text-gray-400">Для просмотра профилей необходим аккаунт.</p>
@@ -175,11 +175,11 @@ export default function PublicPlayerClient({ profileId }: { profileId: string })
 
   if (!profile) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#111214] px-5 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#0A0E18] px-5 text-white">
         <div className="text-center">
           <h1 className="text-2xl font-black">Профиль не найден</h1>
           <p className="mt-2 text-sm text-gray-400">{message || "Такого пользователя не существует."}</p>
-          <Link href="/friends" className="mt-5 inline-block text-orange-400">← К друзьям</Link>
+          <Link href="/friends" className="mt-5 inline-block text-blue-400">← К друзьям</Link>
         </div>
       </main>
     );
@@ -194,7 +194,7 @@ export default function PublicPlayerClient({ profileId }: { profileId: string })
             {profile.avatar_url?.startsWith("https://") ? (
               <img src={profile.avatar_url} alt="" className="h-24 w-24 rounded-2xl border object-cover" style={{ borderColor: C.border }} />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-black" style={{ background: "rgba(240,120,50,0.12)", color: C.orange }}>
+              <div className="flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-black" style={{ background: "rgba(57,120,255,0.12)", color: C.orange }}>
                 {profile.full_name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -221,7 +221,7 @@ export default function PublicPlayerClient({ profileId }: { profileId: string })
             </button>
           </div>
 
-          {message && <p className="mt-5 rounded-xl border border-orange-500/20 bg-orange-500/10 p-3 text-sm text-orange-200">{message}</p>}
+          {message && <p className="mt-5 rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-sm text-blue-200">{message}</p>}
 
           {activeList && (
             <section className="mt-6 border-t pt-5" style={{ borderColor: C.border }}>
@@ -234,7 +234,7 @@ export default function PublicPlayerClient({ profileId }: { profileId: string })
                 <div className="mt-4 space-y-2">
                   {listProfiles.map((entry) => (
                     <Link key={entry.user_id} href={`/player/${entry.user_id}`} className="flex items-center gap-3 rounded-xl border p-3 transition hover:bg-white/5" style={{ borderColor: C.border }}>
-                      {entry.avatar_url?.startsWith("https://") ? <img src={entry.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" /> : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/10 font-bold text-orange-400">{entry.full_name.charAt(0).toUpperCase()}</span>}
+                      {entry.avatar_url?.startsWith("https://") ? <img src={entry.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" /> : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 font-bold text-blue-400">{entry.full_name.charAt(0).toUpperCase()}</span>}
                       <span className="font-semibold">{entry.full_name}</span>
                     </Link>
                   ))}
