@@ -415,6 +415,12 @@ export default function ProfilePage() {
       href: "/library",
     },
     {
+      title: "Избранное",
+      description: "Список желаемого",
+      icon: "☆",
+      href: "/wishlist",
+    },
+    {
       title: "Достижения",
       description: "Уровень, опыт и награды",
       icon: "🏆",
