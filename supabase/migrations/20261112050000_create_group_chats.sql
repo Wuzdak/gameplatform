@@ -134,16 +134,4 @@ grant select, insert, update, delete on public.chat_groups to authenticated;
 grant select, insert, delete on public.chat_group_members to authenticated;
 grant select, insert on public.chat_group_messages to authenticated;
 
-do $
-begin
-  if not exists (
-    select 1
-    from pg_publication_tables
-    where pubname = 'supabase_realtime'
-      and schemaname = 'public'
-      and tablename = 'chat_group_messages'
-  ) then
-    alter publication supabase_realtime add table public.chat_group_messages;
-  end if;
-end;
-$;
+alter publication supabase_realtime add table public.chat_group_messages;
