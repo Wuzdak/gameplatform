@@ -403,12 +403,6 @@ export default function ProfilePage() {
       href: "/friends",
     },
     {
-      title: "Добавить друзей",
-      description: "Найти новых игроков",
-      icon: "+",
-      href: "/friends",
-    },
-    {
       title: "Личные сообщения",
       description: "Твои переписки",
       icon: "✉",
