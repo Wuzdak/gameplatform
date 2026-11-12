@@ -41,6 +41,10 @@ type Game = {
   screenshots: string[] | null;
   system_requirements: string | null;
   launch_url: string | null;
+  developer: string | null;
+  publisher: string | null;
+  release_date: string | null;
+  trailer_url: string | null;
   is_published: boolean;
   created_at: string;
 };
@@ -54,6 +58,10 @@ type GameForm = {
   screenshots: string;
   system_requirements: string;
   launch_url: string;
+  developer: string;
+  publisher: string;
+  release_date: string;
+  trailer_url: string;
   is_published: boolean;
 };
 
@@ -66,6 +74,10 @@ const emptyGame: GameForm = {
   screenshots: "",
   system_requirements: "",
   launch_url: "",
+  developer: "",
+  publisher: "",
+  release_date: "",
+  trailer_url: "",
   is_published: false,
 };
 
@@ -557,6 +569,10 @@ export default function AdminPage() {
       screenshots: (game.screenshots || []).join("\n"),
       system_requirements: game.system_requirements || "",
       launch_url: game.launch_url || "",
+      developer: game.developer || "",
+      publisher: game.publisher || "",
+      release_date: game.release_date || "",
+      trailer_url: game.trailer_url || "",
       is_published: game.is_published,
     });
 
@@ -605,6 +621,14 @@ export default function AdminPage() {
       return;
     }
 
+    if (
+      gameForm.trailer_url.trim() &&
+      !isValidLaunchUrl(gameForm.trailer_url.trim())
+    ) {
+      setMessage("Ссылка на трейлер должна начинаться с https://.");
+      return;
+    }
+
     const screenshots = gameForm.screenshots
       .split("\n")
       .map((url) => url.trim())
@@ -632,6 +656,10 @@ export default function AdminPage() {
       screenshots,
       system_requirements: gameForm.system_requirements.trim(),
       launch_url: gameForm.launch_url.trim() || null,
+      developer: gameForm.developer.trim() || null,
+      publisher: gameForm.publisher.trim() || null,
+      release_date: gameForm.release_date || null,
+      trailer_url: gameForm.trailer_url.trim() || null,
       is_published: gameForm.is_published,
     };
 
@@ -1157,6 +1185,58 @@ export default function AdminPage() {
                   placeholder="https://example.com/play"
                   className={inputClass}
                 />
+              </div>
+
+              {/* Дополнительная информация об игре */}
+
+              <div className="md:col-span-2 rounded-xl border border-[#303236] bg-[#141618] p-4">
+                <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-[#F07832]">
+                  Информация об игре
+                </h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm text-[#92949A]">Разработчик</label>
+                    <input
+                      maxLength={100}
+                      value={gameForm.developer}
+                      onChange={(e) => updateGameForm("developer", e.target.value)}
+                      placeholder="Например, CD Projekt RED"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm text-[#92949A]">Издатель</label>
+                    <input
+                      maxLength={100}
+                      value={gameForm.publisher}
+                      onChange={(e) => updateGameForm("publisher", e.target.value)}
+                      placeholder="Например, CD Projekt"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm text-[#92949A]">Дата выхода</label>
+                    <input
+                      type="date"
+                      value={gameForm.release_date}
+                      onChange={(e) => updateGameForm("release_date", e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm text-[#92949A]">Ссылка на трейлер (YouTube / Vimeo)</label>
+                    <input
+                      type="url"
+                      value={gameForm.trailer_url}
+                      onChange={(e) => updateGameForm("trailer_url", e.target.value)}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+                <p className="mt-3 text-xs text-[#777A80]">
+                  Эти поля необязательны. Трейлер будет встроен на страницу игры.
+                </p>
               </div>
 
               {/* Системные требования */}
