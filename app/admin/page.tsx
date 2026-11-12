@@ -795,12 +795,12 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#111214] p-8 text-white">
+      <main className="min-h-screen bg-[#0A0E18] p-8 text-white">
         <div className="mx-auto max-w-6xl">
-          <p className="text-sm font-bold tracking-[0.3em] text-[#F07832]">
+          <p className="text-sm font-bold tracking-[0.3em] text-[#3978FF]">
             VEXORA
           </p>
-          <p className="mt-4 text-[#92949A]">Загрузка панели...</p>
+          <p className="mt-4 text-[#9AA8BD]">Загрузка панели...</p>
         </div>
       </main>
     );
@@ -808,9 +808,9 @@ export default function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#111214] p-8 text-white">
-        <div className="w-full max-w-md rounded-2xl border border-[#303236] bg-[#1B1D20] p-8">
-          <p className="text-sm font-bold tracking-[0.3em] text-[#F07832]">
+      <main className="flex min-h-screen items-center justify-center bg-[#0A0E18] p-8 text-white">
+        <div className="w-full max-w-md rounded-2xl border border-[#293650] bg-[#121A2A] p-8">
+          <p className="text-sm font-bold tracking-[0.3em] text-[#3978FF]">
             VEXORA
           </p>
 
@@ -818,13 +818,13 @@ export default function AdminPage() {
             Доступ запрещён
           </h1>
 
-          <p className="mt-3 text-[#92949A]">
+          <p className="mt-3 text-[#9AA8BD]">
             У этого аккаунта нет прав администратора.
           </p>
 
           <button
             onClick={() => router.push("/")}
-            className="mt-6 rounded-xl bg-[#F07832] px-5 py-3 font-semibold text-white transition hover:bg-[#FF8B43]"
+            className="mt-6 rounded-xl bg-[#3978FF] px-5 py-3 font-semibold text-white transition hover:bg-[#69A0FF]"
           >
             На главную
           </button>
@@ -850,20 +850,20 @@ export default function AdminPage() {
   });
 
   const inputClass =
-    "w-full rounded-xl border border-[#303236] bg-[#141618] p-3 text-white outline-none transition placeholder:text-[#666970] focus:border-[#F07832]";
+    "w-full rounded-xl border border-[#293650] bg-[#101827] p-3 text-white outline-none transition placeholder:text-[#666970] focus:border-[#3978FF]";
 
   const secondaryButtonClass =
-    "rounded-xl border border-[#303236] px-4 py-2 text-sm text-[#E7E7E7] transition hover:border-[#F07832] hover:bg-[#F07832]/10";
+    "rounded-xl border border-[#293650] px-4 py-2 text-sm text-[#EDF3FF] transition hover:border-[#3978FF] hover:bg-[#3978FF]/10";
 
   return (
-    <main className="min-h-screen bg-[#111214] p-5 text-[#E7E7E7] md:p-10">
+    <main className="min-h-screen bg-[#0A0E18] p-5 text-[#EDF3FF] md:p-10">
       <div className="mx-auto max-w-6xl">
 
         {/* Шапка */}
 
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-extrabold tracking-[0.3em] text-[#F07832]">
+            <p className="text-sm font-extrabold tracking-[0.3em] text-[#3978FF]">
               VEXORA
             </p>
 
@@ -871,7 +871,7 @@ export default function AdminPage() {
               Панель администратора
             </h1>
 
-            <p className="mt-2 text-sm text-[#92949A]">
+            <p className="mt-2 text-sm text-[#9AA8BD]">
               Управление игровой платформой
             </p>
           </div>
@@ -893,7 +893,7 @@ export default function AdminPage() {
         {message && (
           <div
             role="status"
-            className="mb-6 whitespace-pre-wrap rounded-xl border border-[#F07832]/30 bg-[#F07832]/10 p-4 text-sm text-[#F5B184]"
+            className="mb-6 whitespace-pre-wrap rounded-xl border border-[#3978FF]/30 bg-[#3978FF]/10 p-4 text-sm text-[#B8CEFF]"
           >
             {message}
           </div>
@@ -914,10 +914,10 @@ export default function AdminPage() {
             ].map((item) => (
               <div
                 key={item.label}
-                className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-6"
+                className="rounded-2xl border border-[#293650] bg-[#121A2A] p-6"
               >
-                <p className="text-sm text-[#92949A]">{item.label}</p>
-                <p className="mt-3 text-4xl font-extrabold text-[#F07832]">
+                <p className="text-sm text-[#9AA8BD]">{item.label}</p>
+                <p className="mt-3 text-4xl font-extrabold text-[#3978FF]">
                   {item.value}
                 </p>
               </div>
@@ -935,7 +935,7 @@ export default function AdminPage() {
           <form
             id="game-form"
             onSubmit={saveGame}
-            className="mb-8 rounded-2xl border border-[#F07832]/30 bg-[#1B1D20] p-5 md:p-6"
+            className="mb-8 rounded-2xl border border-[#3978FF]/30 bg-[#121A2A] p-5 md:p-6"
           >
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-xl font-semibold">
@@ -944,14 +944,14 @@ export default function AdminPage() {
                   : "Добавление новой игры"}
               </h3>
 
-              <span className="rounded-full bg-[#F07832]/10 px-3 py-1 text-xs font-semibold text-[#F07832]">
+              <span className="rounded-full bg-[#3978FF]/10 px-3 py-1 text-xs font-semibold text-[#3978FF]">
                 GAME MANAGER
               </span>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm text-[#92949A]">
+                <label className="mb-2 block text-sm text-[#9AA8BD]">
                   Название игры *
                 </label>
 
@@ -968,7 +968,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-[#92949A]">
+                <label className="mb-2 block text-sm text-[#9AA8BD]">
                   Жанр *
                 </label>
 
@@ -985,7 +985,7 @@ export default function AdminPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-[#92949A]">
+                <label className="mb-2 block text-sm text-[#9AA8BD]">
                   Цена (условная, без оплаты)
                 </label>
 
@@ -1005,11 +1005,11 @@ export default function AdminPage() {
               {/* Обложка */}
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-[#F07832]">
+                <label className="mb-2 block text-sm font-semibold text-[#3978FF]">
                   Обложка игры
                 </label>
 
-                <p className="mb-3 text-xs text-[#92949A]">
+                <p className="mb-3 text-xs text-[#9AA8BD]">
                   Выбери изображение с компьютера. Допустимые форматы:
                   JPG, PNG, WEBP, GIF. Максимальный размер — 5 МБ.
                 </p>
@@ -1019,17 +1019,17 @@ export default function AdminPage() {
                   accept="image/jpeg,image/png,image/webp,image/gif"
                   onChange={handleCoverUpload}
                   disabled={uploadingCover}
-                  className="block w-full cursor-pointer rounded-xl border border-[#303236] bg-[#141618] p-3 text-sm text-[#92949A] file:mr-4 file:rounded-lg file:border-0 file:bg-[#F07832] file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-[#FF8B43] disabled:opacity-50"
+                  className="block w-full cursor-pointer rounded-xl border border-[#293650] bg-[#101827] p-3 text-sm text-[#9AA8BD] file:mr-4 file:rounded-lg file:border-0 file:bg-[#3978FF] file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-[#69A0FF] disabled:opacity-50"
                 />
 
                 {uploadingCover && (
-                  <p className="mt-2 text-sm text-[#F07832]">
+                  <p className="mt-2 text-sm text-[#3978FF]">
                     Загружаем обложку...
                   </p>
                 )}
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-sm text-[#92949A]">
+                  <label className="mb-2 block text-sm text-[#9AA8BD]">
                     Или вставь ссылку на обложку
                   </label>
 
@@ -1047,7 +1047,7 @@ export default function AdminPage() {
                 {gameForm.image_url.trim() &&
                   isValidImageUrl(gameForm.image_url.trim()) && (
                     <div className="mt-4">
-                      <p className="mb-2 text-sm text-[#92949A]">
+                      <p className="mb-2 text-sm text-[#9AA8BD]">
                         Предпросмотр обложки
                       </p>
 
@@ -1055,7 +1055,7 @@ export default function AdminPage() {
                         <img
                           src={gameForm.image_url.trim()}
                           alt="Предпросмотр обложки"
-                          className="h-48 max-w-full rounded-xl border border-[#303236] object-cover"
+                          className="h-48 max-w-full rounded-xl border border-[#293650] object-cover"
                         />
 
                         <button
@@ -1075,7 +1075,7 @@ export default function AdminPage() {
               {/* Описание */}
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm text-[#92949A]">
+                <label className="mb-2 block text-sm text-[#9AA8BD]">
                   Описание игры
                 </label>
 
@@ -1094,11 +1094,11 @@ export default function AdminPage() {
               {/* Скриншоты */}
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-[#F07832]">
+                <label className="mb-2 block text-sm font-semibold text-[#3978FF]">
                   Скриншоты игры
                 </label>
 
-                <p className="mb-3 text-xs text-[#92949A]">
+                <p className="mb-3 text-xs text-[#9AA8BD]">
                   Можно выбрать сразу несколько изображений.
                   Каждое изображение загрузится в Supabase Storage.
                   Максимальный размер одного файла — 5 МБ.
@@ -1110,17 +1110,17 @@ export default function AdminPage() {
                   multiple
                   onChange={handleScreenshotsUpload}
                   disabled={uploadingScreenshots}
-                  className="block w-full cursor-pointer rounded-xl border border-[#303236] bg-[#141618] p-3 text-sm text-[#92949A] file:mr-4 file:rounded-lg file:border-0 file:bg-[#F07832] file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-[#FF8B43] disabled:opacity-50"
+                  className="block w-full cursor-pointer rounded-xl border border-[#293650] bg-[#101827] p-3 text-sm text-[#9AA8BD] file:mr-4 file:rounded-lg file:border-0 file:bg-[#3978FF] file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-[#69A0FF] disabled:opacity-50"
                 />
 
                 {uploadingScreenshots && (
-                  <p className="mt-2 text-sm text-[#F07832]">
+                  <p className="mt-2 text-sm text-[#3978FF]">
                     Загружаем скриншоты...
                   </p>
                 )}
 
                 <div className="mt-4">
-                  <label className="mb-2 block text-sm text-[#92949A]">
+                  <label className="mb-2 block text-sm text-[#9AA8BD]">
                     Или вставь ссылки на скриншоты
                   </label>
 
@@ -1139,7 +1139,7 @@ export default function AdminPage() {
 
                 {previewScreenshots.length > 0 && (
                   <div className="mt-4">
-                    <p className="mb-3 text-sm text-[#92949A]">
+                    <p className="mb-3 text-sm text-[#9AA8BD]">
                       Скриншоты ({previewScreenshots.length})
                     </p>
 
@@ -1147,7 +1147,7 @@ export default function AdminPage() {
                       {previewScreenshots.map((url, index) => (
                         <div
                           key={`${url}-${index}`}
-                          className="overflow-hidden rounded-xl border border-[#303236] bg-[#141618]"
+                          className="overflow-hidden rounded-xl border border-[#293650] bg-[#101827]"
                         >
                           <img
                             src={url}
@@ -1171,11 +1171,11 @@ export default function AdminPage() {
 
               {/* Ссылка для запуска */}
 
-              <div className="md:col-span-2 rounded-xl border border-[#F07832]/20 bg-[#F07832]/5 p-4">
-                <label className="mb-2 block text-sm font-semibold text-[#F07832]">
+              <div className="md:col-span-2 rounded-xl border border-[#3978FF]/20 bg-[#3978FF]/5 p-4">
+                <label className="mb-2 block text-sm font-semibold text-[#3978FF]">
                   Ссылка для запуска игры
                 </label>
-                <p className="mb-3 text-xs text-[#92949A]">
+                <p className="mb-3 text-xs text-[#9AA8BD]">
                   Укажи HTTPS-ссылку на браузерную версию игры или её официальную страницу. Поле можно оставить пустым.
                 </p>
                 <input
@@ -1189,13 +1189,13 @@ export default function AdminPage() {
 
               {/* Дополнительная информация об игре */}
 
-              <div className="md:col-span-2 rounded-xl border border-[#303236] bg-[#141618] p-4">
-                <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-[#F07832]">
+              <div className="md:col-span-2 rounded-xl border border-[#293650] bg-[#101827] p-4">
+                <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-[#3978FF]">
                   Информация об игре
                 </h4>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm text-[#92949A]">Разработчик</label>
+                    <label className="mb-2 block text-sm text-[#9AA8BD]">Разработчик</label>
                     <input
                       maxLength={100}
                       value={gameForm.developer}
@@ -1205,7 +1205,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm text-[#92949A]">Издатель</label>
+                    <label className="mb-2 block text-sm text-[#9AA8BD]">Издатель</label>
                     <input
                       maxLength={100}
                       value={gameForm.publisher}
@@ -1215,7 +1215,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm text-[#92949A]">Дата выхода</label>
+                    <label className="mb-2 block text-sm text-[#9AA8BD]">Дата выхода</label>
                     <input
                       type="date"
                       value={gameForm.release_date}
@@ -1224,7 +1224,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm text-[#92949A]">Ссылка на трейлер (YouTube / Vimeo)</label>
+                    <label className="mb-2 block text-sm text-[#9AA8BD]">Ссылка на трейлер (YouTube / Vimeo)</label>
                     <input
                       type="url"
                       value={gameForm.trailer_url}
@@ -1242,11 +1242,11 @@ export default function AdminPage() {
               {/* Системные требования */}
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-[#F07832]">
+                <label className="mb-2 block text-sm font-semibold text-[#3978FF]">
                   Системные требования
                 </label>
 
-                <p className="mb-2 text-xs text-[#92949A]">
+                <p className="mb-2 text-xs text-[#9AA8BD]">
                   Укажи минимальные и рекомендуемые характеристики компьютера.
                 </p>
 
@@ -1284,7 +1284,7 @@ export default function AdminPage() {
                   onChange={(e) =>
                     updateGameForm("is_published", e.target.checked)
                   }
-                  className="h-4 w-4 accent-[#F07832]"
+                  className="h-4 w-4 accent-[#3978FF]"
                 />
 
                 Опубликовать игру сразу
@@ -1299,7 +1299,7 @@ export default function AdminPage() {
                   uploadingCover ||
                   uploadingScreenshots
                 }
-                className="rounded-xl bg-[#F07832] px-6 py-3 font-semibold text-white transition hover:bg-[#FF8B43] disabled:opacity-50"
+                className="rounded-xl bg-[#3978FF] px-6 py-3 font-semibold text-white transition hover:bg-[#69A0FF] disabled:opacity-50"
               >
                 {savingGame
                   ? "Сохранение..."
@@ -1327,7 +1327,7 @@ export default function AdminPage() {
           </h3>
 
           {games.length === 0 ? (
-            <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-8 text-center text-[#92949A]">
+            <div className="rounded-2xl border border-[#293650] bg-[#121A2A] p-8 text-center text-[#9AA8BD]">
               Игр пока нет. Добавь первую игру с помощью формы выше.
             </div>
           ) : (
@@ -1335,7 +1335,7 @@ export default function AdminPage() {
               {games.map((game) => (
                 <article
                   key={game.id}
-                  className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-5"
+                  className="rounded-2xl border border-[#293650] bg-[#121A2A] p-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex min-w-0 flex-1 gap-4">
@@ -1346,7 +1346,7 @@ export default function AdminPage() {
                           className="h-24 w-36 shrink-0 rounded-xl object-cover"
                         />
                       ) : (
-                        <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-xl bg-[#F07832]/10 text-3xl">
+                        <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-xl bg-[#3978FF]/10 text-3xl">
                           🎮
                         </div>
                       )}
@@ -1356,19 +1356,19 @@ export default function AdminPage() {
                           {game.title}
                         </h4>
 
-                        <p className="mt-1 text-sm text-[#F07832]">
+                        <p className="mt-1 text-sm text-[#3978FF]">
                           {game.genre}
                         </p>
 
-                        <p className="mt-2 text-sm text-[#92949A]">
+                        <p className="mt-2 text-sm text-[#9AA8BD]">
                           Цена: {game.price}
                         </p>
 
-                        <p className="mt-1 text-sm text-[#92949A]">
+                        <p className="mt-1 text-sm text-[#9AA8BD]">
                           Скриншотов: {(game.screenshots || []).length}
                         </p>
 
-                        <p className="mt-1 text-sm text-[#92949A]">
+                        <p className="mt-1 text-sm text-[#9AA8BD]">
                           Системные требования:{" "}
                           {game.system_requirements?.trim()
                             ? "Заполнены"
@@ -1392,14 +1392,14 @@ export default function AdminPage() {
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => startEditing(game)}
-                        className="rounded-lg border border-[#303236] px-3 py-2 text-sm transition hover:border-[#F07832] hover:bg-[#F07832]/10"
+                        className="rounded-lg border border-[#293650] px-3 py-2 text-sm transition hover:border-[#3978FF] hover:bg-[#3978FF]/10"
                       >
                         Изменить
                       </button>
 
                       <button
                         onClick={() => togglePublication(game)}
-                        className="rounded-lg bg-[#F07832] px-3 py-2 text-sm text-white transition hover:bg-[#FF8B43]"
+                        className="rounded-lg bg-[#3978FF] px-3 py-2 text-sm text-white transition hover:bg-[#69A0FF]"
                       >
                         {game.is_published ? "Снять" : "Опубликовать"}
                       </button>
@@ -1414,14 +1414,14 @@ export default function AdminPage() {
                   </div>
 
                   {game.description && (
-                    <p className="mt-4 whitespace-pre-wrap text-sm text-[#92949A]">
+                    <p className="mt-4 whitespace-pre-wrap text-sm text-[#9AA8BD]">
                       {game.description}
                     </p>
                   )}
 
                   {(game.screenshots || []).length > 0 && (
                     <div className="mt-4">
-                      <p className="mb-2 text-sm text-[#92949A]">
+                      <p className="mb-2 text-sm text-[#9AA8BD]">
                         Скриншоты:
                       </p>
 
@@ -1431,7 +1431,7 @@ export default function AdminPage() {
                             key={`${url}-${index}`}
                             src={url}
                             alt={`Скриншот ${index + 1}`}
-                            className="h-24 w-full rounded-lg border border-[#303236] object-cover"
+                            className="h-24 w-full rounded-lg border border-[#293650] object-cover"
                           />
                         ))}
                       </div>
@@ -1460,7 +1460,7 @@ export default function AdminPage() {
             </button>
           </div>
 
-          <div className="mb-5 rounded-2xl border border-[#303236] bg-[#1B1D20] p-4">
+          <div className="mb-5 rounded-2xl border border-[#293650] bg-[#121A2A] p-4">
             <input
               type="text"
               value={userSearch}
@@ -1469,17 +1469,17 @@ export default function AdminPage() {
               className={inputClass}
             />
 
-            <p className="mt-3 text-sm text-[#92949A]">
+            <p className="mt-3 text-sm text-[#9AA8BD]">
               Всего аккаунтов: {managedUsers.length} · Найдено: {filteredUsers.length}
             </p>
           </div>
 
           {usersLoading && managedUsers.length === 0 ? (
-            <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-8 text-center text-[#92949A]">
+            <div className="rounded-2xl border border-[#293650] bg-[#121A2A] p-8 text-center text-[#9AA8BD]">
               Загружаем пользователей...
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-8 text-center text-[#92949A]">
+            <div className="rounded-2xl border border-[#293650] bg-[#121A2A] p-8 text-center text-[#9AA8BD]">
               Пользователи не найдены.
             </div>
           ) : (
@@ -1495,7 +1495,7 @@ export default function AdminPage() {
                 return (
                   <article
                     key={user.id}
-                    className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-5"
+                    className="rounded-2xl border border-[#293650] bg-[#121A2A] p-5"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
@@ -1503,7 +1503,7 @@ export default function AdminPage() {
                           {user.full_name || "Без имени"}
                         </h3>
 
-                        <p className="mt-2 break-all text-sm text-[#92949A]">
+                        <p className="mt-2 break-all text-sm text-[#9AA8BD]">
                           Email: {user.email || "Не указан"}
                         </p>
 
@@ -1520,7 +1520,7 @@ export default function AdminPage() {
                         </p>
 
                         {isSelf && (
-                          <p className="mt-2 text-xs text-[#F07832]">
+                          <p className="mt-2 text-xs text-[#3978FF]">
                             Это ваш аккаунт
                           </p>
                         )}
@@ -1530,7 +1530,7 @@ export default function AdminPage() {
                         <span
                           className={`rounded-full px-3 py-1 text-xs ${
                             user.is_admin
-                              ? "bg-[#F07832]/15 text-[#F5B184]"
+                              ? "bg-[#3978FF]/15 text-[#B8CEFF]"
                               : "bg-white/10 text-[#D0D0D0]"
                           }`}
                         >
@@ -1563,7 +1563,7 @@ export default function AdminPage() {
                             updateManagedUser(user.id, "remove_admin")
                           }
                           disabled={isUpdating || isSelf}
-                          className="rounded-lg border border-[#F07832]/30 bg-[#F07832]/10 px-3 py-2 text-sm text-[#F5B184] transition hover:bg-[#F07832]/20 disabled:opacity-50"
+                          className="rounded-lg border border-[#3978FF]/30 bg-[#3978FF]/10 px-3 py-2 text-sm text-[#B8CEFF] transition hover:bg-[#3978FF]/20 disabled:opacity-50"
                         >
                           Снять права администратора
                         </button>
@@ -1573,7 +1573,7 @@ export default function AdminPage() {
                             updateManagedUser(user.id, "make_admin")
                           }
                           disabled={isUpdating}
-                          className="rounded-lg bg-[#F07832] px-3 py-2 text-sm text-white transition hover:bg-[#FF8B43] disabled:opacity-50"
+                          className="rounded-lg bg-[#3978FF] px-3 py-2 text-sm text-white transition hover:bg-[#69A0FF] disabled:opacity-50"
                         >
                           Сделать администратором
                         </button>
@@ -1625,7 +1625,7 @@ export default function AdminPage() {
                     </div>
 
                     {isUpdating && (
-                      <p className="mt-3 text-sm text-[#F07832]">
+                      <p className="mt-3 text-sm text-[#3978FF]">
                         Выполняем действие...
                       </p>
                     )}
@@ -1650,7 +1650,7 @@ export default function AdminPage() {
           </h2>
 
           {applications.length === 0 ? (
-            <div className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-8 text-center text-[#92949A]">
+            <div className="rounded-2xl border border-[#293650] bg-[#121A2A] p-8 text-center text-[#9AA8BD]">
               Заявок пока нет.
             </div>
           ) : (
@@ -1658,7 +1658,7 @@ export default function AdminPage() {
               {applications.map((application) => (
                 <article
                   key={application.id}
-                  className="rounded-2xl border border-[#303236] bg-[#1B1D20] p-5"
+                  className="rounded-2xl border border-[#293650] bg-[#121A2A] p-5"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h3 className="text-xl font-semibold">
@@ -1668,7 +1668,7 @@ export default function AdminPage() {
                     <span
                       className={`rounded-full px-3 py-1 text-sm ${
                         application.status === "pending"
-                          ? "bg-[#F07832]/15 text-[#F5B184]"
+                          ? "bg-[#3978FF]/15 text-[#B8CEFF]"
                           : application.status === "approved"
                             ? "bg-green-500/15 text-green-300"
                             : "bg-red-500/15 text-red-300"
@@ -1724,8 +1724,8 @@ export default function AdminPage() {
 
         {/* Нижняя часть */}
 
-        <footer className="mt-12 border-t border-[#303236] pt-6 text-center">
-          <p className="text-sm font-extrabold tracking-[0.3em] text-[#F07832]">
+        <footer className="mt-12 border-t border-[#293650] pt-6 text-center">
+          <p className="text-sm font-extrabold tracking-[0.3em] text-[#3978FF]">
             VEXORA
           </p>
           <p className="mt-2 text-xs text-[#777A80]">
