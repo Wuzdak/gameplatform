@@ -213,20 +213,20 @@ export default function AuthPage() {
               >
                 <path
                   d="M100 12L177 56V144L100 188L23 144V56L100 12Z"
-                  stroke="#3978FF"
+                  stroke="#F07832"
                   strokeWidth="5"
                 />
 
                 <path
                   d="M100 28L163 64V136L100 172L37 136V64L100 28Z"
-                  stroke="#3978FF"
+                  stroke="#F07832"
                   strokeOpacity=".35"
                   strokeWidth="2"
                 />
 
                 <path
                   d="M55 65L100 145L145 65"
-                  stroke="#3978FF"
+                  stroke="#F07832"
                   strokeWidth="13"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -236,7 +236,7 @@ export default function AuthPage() {
                   cx="100"
                   cy="100"
                   r="88"
-                  stroke="#3978FF"
+                  stroke="#F07832"
                   strokeOpacity=".15"
                   strokeWidth="1"
                 />
@@ -518,7 +518,7 @@ export default function AuthPage() {
 
       <style jsx>{`
         .auth-page {
-          --orange: #3978FF;
+          --orange: #F07832;
           --background: #0A0E18;
           --card: #121A2A;
           --secondary: #19243A;
@@ -542,7 +542,7 @@ export default function AuthPage() {
           background:
             radial-gradient(
               ellipse at center,
-              rgba(57,120,255,.09),
+              rgba(240,120,50,.09),
               transparent 65%
             ),
             #151719;
@@ -554,7 +554,7 @@ export default function AuthPage() {
           width: 450px;
           height: 450px;
           border-radius: 50%;
-          background: rgba(57,120,255,.08);
+          background: rgba(240,120,50,.08);
           filter: blur(100px);
           animation: glow 6s ease-in-out infinite;
         }
@@ -588,8 +588,8 @@ export default function AuthPage() {
           width: 190px;
           height: 190px;
           filter:
-            drop-shadow(0 0 12px rgba(57,120,255,.5))
-            drop-shadow(0 0 35px rgba(57,120,255,.25));
+            drop-shadow(0 0 12px rgba(240,120,50,.5))
+            drop-shadow(0 0 35px rgba(240,120,50,.25));
         }
 
         .logo-halo {
@@ -597,7 +597,7 @@ export default function AuthPage() {
           width: 190px;
           height: 190px;
           border-radius: 50%;
-          background: rgba(57,120,255,.2);
+          background: rgba(240,120,50,.2);
           filter: blur(65px);
           animation: halo 4s ease-in-out infinite;
         }
@@ -629,7 +629,7 @@ export default function AuthPage() {
           margin-top: 30px;
           border-radius: 5px;
           background: var(--orange);
-          box-shadow: 0 0 15px rgba(57,120,255,.6);
+          box-shadow: 0 0 15px rgba(240,120,50,.6);
         }
 
         .brand-description {
@@ -665,9 +665,9 @@ export default function AuthPage() {
           width: var(--size);
           height: var(--size);
           border-radius: 50%;
-          background: #83B3FF;
+          background: #FF9A54;
           opacity: 0;
-          box-shadow: 0 0 9px 2px rgba(57,120,255,.7);
+          box-shadow: 0 0 9px 2px rgba(240,120,50,.7);
           animation: sparkFly var(--duration) linear infinite;
           animation-delay: var(--delay);
         }
@@ -781,7 +781,7 @@ export default function AuthPage() {
         .mode-button.active {
           background: var(--orange);
           color: white;
-          box-shadow: 0 4px 15px rgba(57,120,255,.2);
+          box-shadow: 0 4px 15px rgba(240,120,50,.2);
         }
 
         .auth-form {
@@ -822,7 +822,7 @@ export default function AuthPage() {
 
         .input-group input:focus {
           border-color: var(--orange);
-          box-shadow: 0 0 0 3px rgba(57,120,255,.09);
+          box-shadow: 0 0 0 3px rgba(240,120,50,.09);
         }
 
         .password-wrapper {
@@ -880,13 +880,13 @@ export default function AuthPage() {
           font-weight: 800;
           cursor: pointer;
           transition: .25s;
-          box-shadow: 0 7px 20px rgba(57,120,255,.13);
+          box-shadow: 0 7px 20px rgba(240,120,50,.13);
         }
 
         .primary-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          background: #69A0FF;
-          box-shadow: 0 10px 25px rgba(57,120,255,.25);
+          background: #FF8B43;
+          box-shadow: 0 10px 25px rgba(240,120,50,.25);
         }
 
         .primary-button:disabled {
@@ -925,9 +925,9 @@ export default function AuthPage() {
         }
 
         .message-success {
-          border-color: rgba(57,120,255,.3);
-          background: rgba(57,120,255,.07);
-          color: #B8CEFF;
+          border-color: rgba(240,120,50,.3);
+          background: rgba(240,120,50,.07);
+          color: #F5B184;
         }
 
         .message-error {
@@ -991,7 +991,7 @@ export default function AuthPage() {
           height: 65px;
           margin: 0 auto;
           border-radius: 50%;
-          background: rgba(57,120,255,.13);
+          background: rgba(240,120,50,.13);
           color: var(--orange);
           font-size: 30px;
           font-weight: 800;
