@@ -387,7 +387,7 @@ export default function Home() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") goToCatalog();
                 }}
-                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-[#F07832]"
+                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-[#F07832] focus:ring-2 focus:ring-[#F07832]/20"
                 style={{
                   background: C.surface,
                   borderColor: C.border,
