@@ -409,12 +409,6 @@ export default function ProfilePage() {
       href: "/messages",
     },
     {
-      title: "Групповые чаты",
-      description: "Общение с несколькими друзьями",
-      icon: "♧",
-      href: "/groups",
-    },
-    {
       title: "Моя библиотека",
       description: "Твои игры",
       icon: "▤",
