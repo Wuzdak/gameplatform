@@ -420,6 +420,12 @@ export default function ProfilePage() {
       icon: "▤",
       href: "/library",
     },
+    {
+      title: "Достижения",
+      description: "Уровень, опыт и награды",
+      icon: "🏆",
+      href: "/achievements",
+    },
   ];
 
   if (loading) {
