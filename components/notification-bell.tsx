@@ -169,13 +169,13 @@ export default function NotificationBell() {
   if (!userId) return null;
 
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <button
         type="button"
         onClick={() => setOpen((previous) => !previous)}
         aria-label="Уведомления"
         aria-expanded={open}
-        className="relative flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition hover:bg-white/10"
+        className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg transition hover:bg-white/10"
         style={{
           background: "#121A2A",
           borderColor: "#293650",
