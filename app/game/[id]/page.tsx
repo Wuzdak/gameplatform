@@ -79,6 +79,8 @@ function GamePageContent() {
 
   const [adding, setAdding] = useState(false);
   const [inLibrary, setInLibrary] = useState(false);
+  const [inWishlist, setInWishlist] = useState(false);
+  const [savingWishlist, setSavingWishlist] = useState(false);
   const [message, setMessage] = useState("");
 
   const [rating, setRating] = useState("5");
@@ -100,6 +102,7 @@ function GamePageContent() {
       setReviewError("");
       setMessage("");
       setInLibrary(false);
+      setInWishlist(false);
 
       const { data: userData } = await supabase.auth.getUser();
       const currentUserId = userData.user?.id ?? null;
@@ -144,6 +147,17 @@ function GamePageContent() {
         if (cancelled) return;
 
         setInLibrary(Boolean(libraryData && libraryData.length > 0));
+
+        const { data: wishlistData } = await supabase
+          .from("user_wishlist")
+          .select("id")
+          .eq("user_id", currentUserId)
+          .eq("game_id", gameData.id)
+          .limit(1);
+
+        if (cancelled) return;
+
+        setInWishlist(Boolean(wishlistData && wishlistData.length > 0));
       }
 
       const { data: reviewData, error: reviewsLoadError } = await supabase
@@ -244,6 +258,63 @@ function GamePageContent() {
       setMessage("Не удалось выполнить запрос. Попробуй ещё раз.");
     } finally {
       setAdding(false);
+    }
+  }
+
+  async function toggleWishlist() {
+    if (!game || savingWishlist) return;
+
+    setSavingWishlist(true);
+    setMessage("");
+
+    try {
+      const { data, error: userError } = await supabase.auth.getUser();
+
+      if (userError || !data.user) {
+        window.location.href = "/auth";
+        return;
+      }
+
+      const currentUserId = data.user.id;
+
+      if (inWishlist) {
+        const { data: deletedRows, error } = await supabase
+          .from("user_wishlist")
+          .delete()
+          .eq("user_id", currentUserId)
+          .eq("game_id", game.id)
+          .select("id");
+
+        if (error) {
+          setMessage("Не удалось убрать игру из избранного: " + error.message);
+        } else if (!deletedRows || deletedRows.length === 0) {
+          setMessage("Не удалось подтвердить удаление игры из избранного.");
+        } else {
+          setInWishlist(false);
+          setMessage("Игра удалена из избранного.");
+        }
+      } else {
+        const { error } = await supabase.from("user_wishlist").insert({
+          user_id: currentUserId,
+          game_id: game.id,
+        });
+
+        if (error) {
+          if (error.code === "23505") {
+            setInWishlist(true);
+            setMessage("Эта игра уже есть в избранном.");
+          } else {
+            setMessage("Не удалось добавить игру в избранное: " + error.message);
+          }
+        } else {
+          setInWishlist(true);
+          setMessage("Игра добавлена в избранное!");
+        }
+      }
+    } catch {
+      setMessage("Не удалось выполнить запрос. Попробуй ещё раз.");
+    } finally {
+      setSavingWishlist(false);
     }
   }
 
@@ -484,6 +555,23 @@ function GamePageContent() {
                         : game.price === 0
                           ? "Получить бесплатно"
                           : "Добавить в библиотеку"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleWishlist}
+                    disabled={savingWishlist}
+                    className={`mt-3 w-full rounded-xl border px-6 py-3 font-bold transition disabled:cursor-wait disabled:opacity-60 ${
+                      inWishlist
+                        ? "border-[#F07832]/40 bg-[#F07832]/10 text-[#F6A16E] hover:bg-[#F07832]/20"
+                        : "border-[#45484D] bg-[#242629] text-[#E7E7E7] hover:border-[#F07832]/50 hover:text-[#F6A16E]"
+                    }`}
+                  >
+                    {savingWishlist
+                      ? "Сохранение..."
+                      : inWishlist
+                        ? "★ Убрать из избранного"
+                        : "☆ В избранное"}
                   </button>
 
                   {message && (
