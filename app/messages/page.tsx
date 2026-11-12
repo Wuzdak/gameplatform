@@ -37,6 +37,9 @@ type ChatMessage = {
   media_size: number | null;
   media_url?: string | null;
 };
+type ChatGroup = { id: string; name: string; created_by: string; created_at: string };
+type GroupMember = { group_id: string; user_id: string; role: "owner" | "admin" | "member" };
+type GroupMessage = { id: string; group_id: string; sender_id: string; content: string; created_at: string };
 
 const C = {
   bg: "#111214",
@@ -192,6 +195,15 @@ export default function MessagesPage() {
     null
   );
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [groups, setGroups] = useState<ChatGroup[]>([]);
+  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const [groupText, setGroupText] = useState("");
+  const [groupName, setGroupName] = useState("");
+  const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [creatingGroup, setCreatingGroup] = useState(false);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -210,6 +222,72 @@ export default function MessagesPage() {
 
   const selectedFriend =
     friends.find((friend) => friend.friend_id === selectedFriendId) || null;
+  const selectedGroup = groups.find((group) => group.id === selectedGroupId) || null;
+  const selectedGroupMembers = groupMembers.filter((member) => member.group_id === selectedGroupId);
+
+
+  const loadGroups = useCallback(async (currentUserId: string) => {
+    const { data: ownRows, error: ownError } = await supabase.from("chat_group_members").select("group_id,user_id,role").eq("user_id", currentUserId);
+    if (ownError) { setNotice("Не удалось загрузить группы: " + ownError.message); return; }
+    const ids = (ownRows || []).map((row) => row.group_id);
+    if (!ids.length) { setGroups([]); setGroupMembers([]); setSelectedGroupId(null); return; }
+    const [{ data: groupRows, error: groupError }, { data: memberRows, error: memberError }] = await Promise.all([
+      supabase.from("chat_groups").select("id,name,created_by,created_at").in("id", ids).order("created_at", { ascending: false }),
+      supabase.from("chat_group_members").select("group_id,user_id,role").in("group_id", ids),
+    ]);
+    if (groupError || memberError) { setNotice("Не удалось загрузить групповые чаты: " + (groupError?.message || memberError?.message)); return; }
+    setGroups((groupRows || []) as ChatGroup[]);
+    setGroupMembers((memberRows || []) as GroupMember[]);
+  }, []);
+
+  async function createGroup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = groupName.trim();
+    if (!userId || !name || !selectedFriendIds.length || creatingGroup) return;
+    setCreatingGroup(true); setNotice("");
+    try {
+      const { data: group, error: groupError } = await supabase.from("chat_groups").insert({ name, created_by: userId }).select("id,name,created_by,created_at").single();
+      if (groupError || !group) throw groupError || new Error("Группа не создана.");
+      const { error: ownerError } = await supabase.from("chat_group_members").insert({ group_id: group.id, user_id: userId, role: "owner" });
+      if (ownerError) { await supabase.from("chat_groups").delete().eq("id", group.id); throw ownerError; }
+      const { error: friendsError } = await supabase.from("chat_group_members").insert(selectedFriendIds.map((friendId) => ({ group_id: group.id, user_id: friendId, role: "member" })));
+      if (friendsError) { await supabase.from("chat_groups").delete().eq("id", group.id); throw friendsError; }
+      setGroupName(""); setSelectedFriendIds([]); setShowCreateGroup(false);
+      await loadGroups(userId); setSelectedFriendId(null); setSelectedGroupId(group.id); setGroupMessages([]);
+    } catch (error) {
+      setNotice("Не удалось создать группу: " + (error instanceof Error ? error.message : "Неизвестная ошибка"));
+    } finally { setCreatingGroup(false); }
+  }
+
+  async function sendGroupMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const content = groupText.trim();
+    if (!userId || !selectedGroupId || !content) return;
+    const { data, error } = await supabase.from("chat_group_messages").insert({ group_id: selectedGroupId, sender_id: userId, content }).select("id,group_id,sender_id,content,created_at").single();
+    if (error) { setNotice("Не удалось отправить сообщение в группу: " + error.message); return; }
+    if (data) setGroupMessages((current) => current.some((item) => item.id === data.id) ? current : [...current, data as GroupMessage]);
+    setGroupText("");
+  }
+
+  useEffect(() => { if (userId) void loadGroups(userId); }, [userId, loadGroups]);
+
+  useEffect(() => {
+    if (!selectedGroupId) { setGroupMessages([]); return; }
+    let active = true;
+    async function fetchGroupMessages() {
+      const { data, error } = await supabase.from("chat_group_messages").select("id,group_id,sender_id,content,created_at").eq("group_id", selectedGroupId).order("created_at", { ascending: true });
+      if (!active) return;
+      if (error) { setNotice("Не удалось загрузить сообщения группы: " + error.message); return; }
+      setGroupMessages((data || []) as GroupMessage[]);
+    }
+    void fetchGroupMessages();
+    const channel = supabase.channel("group-messages-" + selectedGroupId)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_group_messages", filter: "group_id=eq." + selectedGroupId }, (payload) => {
+        const incoming = payload.new as GroupMessage;
+        setGroupMessages((current) => current.some((item) => item.id === incoming.id) ? current : [...current, incoming].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+      }).subscribe();
+    return () => { active = false; void supabase.removeChannel(channel); };
+  }, [selectedGroupId]);
 
   // Предпросмотр выбранного файла
   useEffect(() => {
@@ -370,6 +448,7 @@ export default function MessagesPage() {
         );
 
         setFriends(acceptedFriends);
+        await loadGroups(currentUserId);
 
         if (acceptedFriends.length > 0) {
           setSelectedFriendId(acceptedFriends[0].friend_id);
@@ -391,7 +470,7 @@ export default function MessagesPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadGroups]);
 
   useEffect(() => {
     loadMessages();
@@ -936,6 +1015,7 @@ export default function MessagesPage() {
                       key={friend.friend_id}
                       type="button"
                       onClick={() => {
+                        setSelectedGroupId(null);
                         setSelectedFriendId(friend.friend_id);
                         setNotice("");
                         setSelectedFile(null);
@@ -1017,6 +1097,21 @@ export default function MessagesPage() {
               </div>
             )}
 
+
+            <div className="border-t p-4" style={{ borderColor: C.border }}>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h3 className="text-xs font-black uppercase tracking-wider" style={{ color: C.muted }}>Группы</h3>
+                <button type="button" onClick={() => setShowCreateGroup((value) => !value)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-black" style={{ background: C.orange }}>＋ Создать</button>
+              </div>
+              {groups.length === 0 ? <p className="text-xs" style={{ color: C.muted }}>Пока нет групп. Создай группу и добавь друзей.</p> : <div className="space-y-1">{groups.map((group) => <button key={group.id} type="button" onClick={() => { setSelectedGroupId(group.id); setSelectedFriendId(null); setNotice(""); }} className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition" style={{ background: selectedGroupId === group.id ? "rgba(240,120,50,0.12)" : "transparent", border: selectedGroupId === group.id ? "1px solid " + C.orange : "1px solid transparent" }}><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(240,120,50,0.12)", color: C.orange }}>♧</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold">{group.name}</span><span className="mt-1 block text-[10px]" style={{ color: C.muted }}>{groupMembers.filter((member) => member.group_id === group.id).length} участников</span></span></button>)}</div>}
+              {showCreateGroup && <form onSubmit={createGroup} className="mt-3 rounded-xl border p-3" style={{ background: C.surface, borderColor: C.border }}>
+                <label htmlFor="messages-group-name" className="text-xs font-bold">Название группы</label>
+                <input id="messages-group-name" value={groupName} onChange={(event) => setGroupName(event.target.value)} maxLength={60} required placeholder="Название" className="mt-2 w-full rounded-lg border px-3 py-2 text-sm outline-none" style={{ background: C.bg, borderColor: C.border, color: C.text }} />
+                <p className="mt-3 text-xs font-bold" style={{ color: C.muted }}>Выбери друзей</p>
+                <div className="mt-2 max-h-40 space-y-2 overflow-y-auto">{friends.map((friend) => <label key={friend.friend_id} className="flex items-center gap-2 text-xs"><input type="checkbox" checked={selectedFriendIds.includes(friend.friend_id)} onChange={(event) => setSelectedFriendIds((current) => event.target.checked ? [...current, friend.friend_id] : current.filter((id) => id !== friend.friend_id))} /><span className="truncate">{friend.full_name || "Игрок"}</span></label>)}{friends.length === 0 && <p className="text-xs" style={{ color: C.muted }}>Сначала добавь друзей.</p>}</div>
+                <button type="submit" disabled={creatingGroup || !groupName.trim() || selectedFriendIds.length === 0} className="mt-3 w-full rounded-lg px-3 py-2 text-xs font-bold text-black disabled:opacity-40" style={{ background: C.orange }}>{creatingGroup ? "Создаём..." : "Создать группу"}</button>
+              </form>}
+            </div>
             <div
               className="mt-auto hidden border-t p-4 md:block"
               style={{ borderColor: C.border }}
@@ -1036,7 +1131,23 @@ export default function MessagesPage() {
 
           {/* CHAT AREA */}
           <section className="flex h-[680px] w-full min-w-0 flex-col">
-            {selectedFriend ? (
+
+            {selectedGroup ? (
+              <>
+                <div className="flex items-center justify-between gap-3 border-b px-5 py-4" style={{ background: "#191A1D", borderColor: C.border }}>
+                  <div className="flex min-w-0 items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(240,120,50,0.12)", color: C.orange }}>♧</span><div className="min-w-0"><h2 className="truncate font-black">{selectedGroup.name}</h2><p className="mt-1 text-xs" style={{ color: C.muted }}>{selectedGroupMembers.length} участников · Групповой чат</p></div></div>
+                  <span className="rounded-lg border px-3 py-2 text-xs" style={{ borderColor: C.border, color: C.muted }}>Группа</span>
+                </div>
+                <div className="flex-1 space-y-3 overflow-y-auto p-4 sm:p-6" style={{ background: "#141517" }}>
+                  {groupMessages.length === 0 ? <div className="flex h-full min-h-[300px] items-center justify-center text-center"><div><div className="text-4xl">♧</div><h3 className="mt-4 font-black">Начни общение!</h3><p className="mt-2 text-sm" style={{ color: C.muted }}>Отправь первое сообщение в эту группу.</p></div></div> : groupMessages.map((message) => { const mine = message.sender_id === userId; const author = friends.find((friend) => friend.friend_id === message.sender_id)?.full_name || (mine ? "Вы" : "Участник"); return <div key={message.id} className={mine ? "ml-auto max-w-[85%] text-right" : "max-w-[85%]"}>{!mine && <p className="mb-1 px-1 text-xs font-semibold" style={{ color: C.orange }}>{author}</p>}<div className="inline-block rounded-2xl px-4 py-3 text-left text-sm" style={{ background: mine ? C.orange : C.surface2, color: mine ? "#17181A" : C.text }}><p className="whitespace-pre-wrap break-words">{message.content}</p><p className="mt-2 text-right text-[10px]" style={{ opacity: 0.65 }}>{formatTime(message.created_at)}</p></div></div>; })}
+                </div>
+                <form onSubmit={sendGroupMessage} className="flex gap-2 border-t p-4" style={{ background: "#191A1D", borderColor: C.border }}>
+                  <input value={groupText} onChange={(event) => setGroupText(event.target.value)} maxLength={5000} placeholder="Сообщение в группу..." className="min-w-0 flex-1 rounded-xl border px-4 py-3 text-sm outline-none" style={{ background: C.bg, borderColor: C.border, color: C.text }} />
+                  <button type="submit" disabled={!groupText.trim()} className="rounded-xl px-5 font-bold text-black disabled:opacity-40" style={{ background: C.orange }}>➤</button>
+                </form>
+              </>
+            ) : selectedFriend ? (
+
               <>
                 {/* CHAT HEADER */}
                 <div
@@ -1522,7 +1633,7 @@ export default function MessagesPage() {
                     className="mt-2 max-w-xs text-sm"
                     style={{ color: C.muted }}
                   >
-                    Выбери друга слева, чтобы открыть личную переписку.
+                    Выбери друга или группу слева, чтобы открыть переписку.
                   </p>
                 </div>
               </div>
