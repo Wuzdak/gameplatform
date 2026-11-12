@@ -87,7 +87,6 @@ export default function Home() {
   const [signingOut, setSigningOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
-  const [unreadDiagnostic, setUnreadDiagnostic] = useState("Ожидание проверки…");
   const [playerProgress, setPlayerProgress] = useState<PlayerProgress | null>(null);
   const [recentAchievements, setRecentAchievements] = useState<RecentAchievement[]>([]);
 
@@ -150,16 +149,6 @@ export default function Home() {
         .eq("is_read", false);
 
       if (!active) return;
-
-      setUnreadDiagnostic(
-        `ID: ${currentUserId} · Найдено: ${data?.length ?? 0} · Ошибка: ${error?.message ?? "нет"}`
-      );
-
-      console.info("VEXORA unread messages diagnostic:", {
-        authenticatedUserId: currentUserId,
-        returnedUnreadCount: data?.length ?? 0,
-        error: error?.message ?? null,
-      });
 
       if (error) {
         console.error("VEXORA unread messages query failed:", error);
@@ -628,9 +617,6 @@ export default function Home() {
               </span>
             )}
           </Link>
-          <p className="px-4 pb-2 text-[10px]" style={{ color: C.muted }}>
-            Диагностика счётчика: {unreadDiagnostic}
-          </p>
 
           <Link
             href="/profile"
