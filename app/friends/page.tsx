@@ -422,9 +422,13 @@ export default function FriendsPage() {
     (entry) => entry.direction === "outgoing" && entry.status === "pending"
   );
 
-  const friends = friendsData.filter(
-    (entry) => entry.direction === "friend" && entry.status === "accepted"
-  );
+  const friends = friendsData
+    .filter((entry) => entry.direction === "friend" && entry.status === "accepted")
+    .sort((a, b) => {
+      const aOnline = getPresence(a) !== "offline";
+      const bOnline = getPresence(b) !== "offline";
+      return Number(bOnline) - Number(aOnline) || (a.full_name || "").localeCompare(b.full_name || "", "ru");
+    });
 
   if (loading) {
     return (
@@ -503,6 +507,24 @@ export default function FriendsPage() {
           >
             ← Мой профиль
           </a>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border p-4" style={{ background: C.surface, borderColor: C.border }}>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: C.muted }}>Друзья</p>
+            <p className="mt-2 text-3xl font-black">{friends.length}</p>
+            <p className="mt-1 text-xs" style={{ color: C.muted }}>В твоём списке</p>
+          </div>
+          <div className="rounded-2xl border p-4" style={{ background: C.surface, borderColor: C.border }}>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: C.muted }}>Сейчас в сети</p>
+            <p className="mt-2 text-3xl font-black text-emerald-400">{friends.filter((entry) => getPresence(entry) === "online").length}</p>
+            <p className="mt-1 text-xs" style={{ color: C.muted }}>Готовы к общению</p>
+          </div>
+          <div className="rounded-2xl border p-4" style={{ background: C.surface, borderColor: C.border }}>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: C.muted }}>Заявки</p>
+            <p className="mt-2 text-3xl font-black" style={{ color: C.orange }}>{incoming.length + outgoing.length}</p>
+            <p className="mt-1 text-xs" style={{ color: C.muted }}>{incoming.length} входящих · {outgoing.length} отправленных</p>
+          </div>
         </div>
 
         <section
@@ -715,15 +737,21 @@ export default function FriendsPage() {
               {friends.map((entry) => (
                 <div
                   key={entry.request_id}
-                  className="rounded-xl p-4"
-                  style={{ background: C.bg }}
+                  className="group rounded-xl border p-4 transition duration-200 hover:-translate-y-0.5 hover:border-orange-500/40 hover:bg-white/[0.02]"
+                  style={{ background: C.bg, borderColor: C.border }}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <Avatar value={entry.avatar_url} name={entry.full_name} />
-                      <span className="truncate font-bold">
+                      <div className="relative shrink-0">
+                        <Avatar value={entry.avatar_url} name={entry.full_name} />
+                        <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#111214] ${getPresence(entry) === "online" ? "bg-emerald-400" : getPresence(entry) === "do_not_disturb" ? "bg-red-400" : "bg-gray-500"}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="block truncate font-bold">
                         {entry.full_name || "Игрок"}
-                      </span>
+                        </span>
+                        <div className="mt-1"><PresenceLabel entry={entry} /></div>
+                      </div>
                     </div>
 
                     <button
@@ -736,13 +764,12 @@ export default function FriendsPage() {
                     </button>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                    <PresenceLabel entry={entry} />
-                    <span className="text-xs text-gray-500">
-                      {getPresence(entry) === "offline"
-                        ? formatLastSeen(entry.last_seen)
-                        : ""}
-                    </span>
+                  <div className="mt-3 border-t pt-3 text-xs text-gray-500" style={{ borderColor: C.border }}>
+                    {getPresence(entry) === "offline"
+                      ? formatLastSeen(entry.last_seen)
+                      : getPresence(entry) === "do_not_disturb"
+                        ? "Пользователь не принимает уведомления"
+                        : "Можно написать и поиграть вместе"}
                   </div>
                 </div>
               ))}
