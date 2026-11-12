@@ -40,6 +40,7 @@ type ChatMessage = {
 type ChatGroup = { id: string; name: string; created_by: string; created_at: string };
 type GroupMember = { group_id: string; user_id: string; role: "owner" | "admin" | "member" };
 type GroupMessage = { id: string; group_id: string; sender_id: string; content: string; created_at: string };
+type GroupMemberProfile = { id: string; full_name: string | null; avatar_url: string | null };
 
 const C = {
   bg: "#0A0E18",
@@ -199,6 +200,10 @@ export default function MessagesPage() {
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const [showGroupProfile, setShowGroupProfile] = useState(false);
+  const [groupMemberProfiles, setGroupMemberProfiles] = useState<GroupMemberProfile[]>([]);
+  const [loadingGroupProfiles, setLoadingGroupProfiles] = useState(false);
+  const [deletingGroup, setDeletingGroup] = useState(false);
   const [groupText, setGroupText] = useState("");
   const [groupName, setGroupName] = useState("");
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
@@ -239,6 +244,52 @@ export default function MessagesPage() {
     setGroups((groupRows || []) as ChatGroup[]);
     setGroupMembers((memberRows || []) as GroupMember[]);
   }, []);
+
+  async function openGroupProfile() {
+    if (!selectedGroup) return;
+    setShowGroupProfile(true);
+    setLoadingGroupProfiles(true);
+    const memberIds = selectedGroupMembers.map((member) => member.user_id);
+    if (!memberIds.length) {
+      setGroupMemberProfiles([]);
+      setLoadingGroupProfiles(false);
+      return;
+    }
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id,full_name,avatar_url")
+      .in("id", memberIds);
+    if (error) {
+      setNotice("Не удалось загрузить участников группы: " + error.message);
+      setGroupMemberProfiles([]);
+    } else {
+      setGroupMemberProfiles((data || []) as GroupMemberProfile[]);
+    }
+    setLoadingGroupProfiles(false);
+  }
+
+  async function deleteGroup() {
+    if (!selectedGroup || selectedGroup.created_by !== userId || deletingGroup) return;
+    const confirmed = window.confirm(`Удалить группу «${selectedGroup.name}»? Это действие нельзя отменить.`);
+    if (!confirmed) return;
+    setDeletingGroup(true);
+    setNotice("");
+    const { error } = await supabase
+      .from("chat_groups")
+      .delete()
+      .eq("id", selectedGroup.id)
+      .eq("created_by", userId);
+    if (error) {
+      setNotice("Не удалось удалить группу: " + error.message);
+      setDeletingGroup(false);
+      return;
+    }
+    setShowGroupProfile(false);
+    setSelectedGroupId(null);
+    setGroupMessages([]);
+    await loadGroups(userId!);
+    setDeletingGroup(false);
+  }
 
   async function createGroup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1156,7 +1207,10 @@ export default function MessagesPage() {
                   <div className="flex min-w-0 items-center gap-3">
                     <button type="button" onClick={() => setSelectedGroupId(null)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-lg md:hidden" style={{ borderColor: C.border, color: C.orange }} aria-label="Назад к диалогам">←</button>
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(57,120,255,0.12)", color: C.orange }}>♧</span>
-                    <div className="min-w-0"><h2 className="truncate font-black">{selectedGroup.name}</h2><p className="mt-1 text-xs" style={{ color: C.muted }}>{selectedGroupMembers.length} участников · Групповой чат</p></div>
+                    <button type="button" onClick={() => void openGroupProfile()} className="min-w-0 text-left group" title="Открыть профиль группы">
+                      <h2 className="truncate font-black transition group-hover:text-[#F07832]">{selectedGroup.name}</h2>
+                      <p className="mt-1 text-xs" style={{ color: C.muted }}>{selectedGroupMembers.length} участников · Групповой чат</p>
+                    </button>
                   </div>
                   <span className="shrink-0 rounded-lg border px-2.5 py-2 text-xs sm:px-3" style={{ borderColor: C.border, color: C.muted }}>Группа</span>
                 </div>
@@ -1663,6 +1717,58 @@ export default function MessagesPage() {
             )}
           </section>
         </div>
+
+        {showGroupProfile && selectedGroup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4" role="dialog" aria-modal="true" aria-labelledby="group-profile-title" onClick={(event) => { if (event.target === event.currentTarget) setShowGroupProfile(false); }}>
+            <div className="max-h-[85dvh] w-full max-w-lg overflow-hidden rounded-2xl border shadow-2xl" style={{ background: C.surface, borderColor: C.border }}>
+              <div className="flex items-start justify-between gap-4 border-b p-5" style={{ borderColor: C.border }}>
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl" style={{ background: "rgba(240,120,50,0.14)", color: C.orange }}>♧</span>
+                  <div className="min-w-0">
+                    <h2 id="group-profile-title" className="break-words text-xl font-black">{selectedGroup.name}</h2>
+                    <p className="mt-1 text-xs" style={{ color: C.muted }}>Профиль группы · {selectedGroupMembers.length} участников</p>
+                  </div>
+                </div>
+                <button type="button" onClick={() => setShowGroupProfile(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-xl" style={{ borderColor: C.border, color: C.muted }} aria-label="Закрыть профиль">×</button>
+              </div>
+
+              <div className="max-h-[55dvh] overflow-y-auto p-5">
+                <h3 className="mb-3 text-xs font-black uppercase tracking-wider" style={{ color: C.muted }}>Участники группы</h3>
+                {loadingGroupProfiles ? (
+                  <p className="py-6 text-center text-sm" style={{ color: C.muted }}>Загружаем участников...</p>
+                ) : selectedGroupMembers.length === 0 ? (
+                  <p className="py-6 text-center text-sm" style={{ color: C.muted }}>В группе пока нет участников.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedGroupMembers.map((member) => {
+                      const profile = groupMemberProfiles.find((item) => item.id === member.user_id);
+                      const memberName = profile?.full_name || (member.user_id === userId ? "Вы" : "Игрок");
+                      return (
+                        <div key={member.user_id} className="flex items-center gap-3 rounded-xl border p-3" style={{ background: C.bg, borderColor: C.border }}>
+                          <Avatar value={profile?.avatar_url || null} name={memberName} size="h-10 w-10" textSize="text-base" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-bold">{memberName}</p>
+                            <p className="mt-0.5 text-xs" style={{ color: C.muted }}>{member.role === "owner" ? "Создатель" : member.role === "admin" ? "Администратор" : "Участник"}</p>
+                          </div>
+                          {member.user_id === userId && <span className="text-[10px] font-bold" style={{ color: C.orange }}>Вы</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t p-5" style={{ borderColor: C.border }}>
+                <button type="button" onClick={() => setShowGroupProfile(false)} className="rounded-xl border px-4 py-2.5 text-sm font-semibold" style={{ borderColor: C.border, color: C.muted }}>Закрыть</button>
+                {selectedGroup.created_by === userId && (
+                  <button type="button" onClick={() => void deleteGroup()} disabled={deletingGroup} className="rounded-xl px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50" style={{ background: "#DC2626" }}>
+                    {deletingGroup ? "Удаляем..." : "Удалить группу"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* FOOTER */}
         <footer className="mt-6 flex flex-wrap items-center justify-between gap-3 py-4">
