@@ -139,23 +139,24 @@ export default function Home() {
       return;
     }
 
+    const currentUserId = user.id;
     let active = true;
 
     async function loadUnreadMessages() {
       const { data, error } = await supabase
         .from("messages")
         .select("id")
-        .eq("receiver_id", user.id)
+        .eq("receiver_id", currentUserId)
         .eq("is_read", false);
 
       if (!active) return;
 
       setUnreadDiagnostic(
-        `ID: ${user.id} · Найдено: ${data?.length ?? 0} · Ошибка: ${error?.message ?? "нет"}`
+        `ID: ${currentUserId} · Найдено: ${data?.length ?? 0} · Ошибка: ${error?.message ?? "нет"}`
       );
 
       console.info("VEXORA unread messages diagnostic:", {
-        authenticatedUserId: user.id,
+        authenticatedUserId: currentUserId,
         returnedUnreadCount: data?.length ?? 0,
         error: error?.message ?? null,
       });
