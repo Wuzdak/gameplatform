@@ -244,13 +244,13 @@ export default function MessagesPage() {
   }, []);
 
   // Загрузка сообщений
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async (silent = false) => {
     if (!userId || !selectedFriendId) {
       setMessages([]);
       return;
     }
 
-    setLoadingMessages(true);
+    if (!silent) setLoadingMessages(true);
 
     try {
       const { data, error } = await supabase
@@ -277,7 +277,7 @@ export default function MessagesPage() {
           (error instanceof Error ? error.message : "Неизвестная ошибка")
       );
     } finally {
-      setLoadingMessages(false);
+      if (!silent) setLoadingMessages(false);
     }
   }, [userId, selectedFriendId, addSignedUrl]);
 
@@ -365,6 +365,27 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!userId || !selectedFriendId) return;
 
+    let fallbackTimer: ReturnType<typeof setInterval> | null = null;
+
+    const startFallback = () => {
+      if (fallbackTimer) return;
+      setNotice("Мгновенные обновления недоступны. Чат обновляется автоматически.");
+      fallbackTimer = setInterval(() => {
+        void loadMessages(true);
+      }, 5000);
+    };
+
+    const stopFallback = () => {
+      if (!fallbackTimer) return;
+      clearInterval(fallbackTimer);
+      fallbackTimer = null;
+      setNotice((current) =>
+        current === "Мгновенные обновления недоступны. Чат обновляется автоматически."
+          ? ""
+          : current
+      );
+    };
+
     const channel = supabase
       .channel(`chat-${userId}-${selectedFriendId}`)
       .on(
@@ -411,17 +432,23 @@ export default function MessagesPage() {
         }
       )
       .subscribe((status) => {
-        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          setNotice(
-            "Не удалось подключиться к обновлениям чата. Проверь соединение."
-          );
+        if (status === "SUBSCRIBED") {
+          stopFallback();
+        } else if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        ) {
+          console.warn("VEXORA chat Realtime status:", status);
+          startFallback();
         }
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (fallbackTimer) clearInterval(fallbackTimer);
+      void supabase.removeChannel(channel);
     };
-  }, [userId, selectedFriendId, addSignedUrl]);
+  }, [userId, selectedFriendId, addSignedUrl, loadMessages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
