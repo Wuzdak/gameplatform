@@ -202,6 +202,10 @@ export default function MessagesPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const wasAtBottomRef = useRef(true);
+  const initialScrollFriendRef = useRef<string | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedFriend =
@@ -473,9 +477,52 @@ export default function MessagesPage() {
     };
   }, [userId, selectedFriendId, addSignedUrl, loadMessages, markMessagesRead]);
 
+  // При открытии каждой переписки сразу показываем последние сообщения.
+  // При новых сообщениях не перетаскиваем пользователя вниз, если он читает историю.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!selectedFriendId) {
+      initialScrollFriendRef.current = null;
+      wasAtBottomRef.current = true;
+      setShowScrollToBottom(false);
+      return;
+    }
+
+    if (initialScrollFriendRef.current !== selectedFriendId) {
+      initialScrollFriendRef.current = selectedFriendId;
+      wasAtBottomRef.current = true;
+      setShowScrollToBottom(false);
+    }
+
+    if (loadingMessages) return;
+
+    if (wasAtBottomRef.current) {
+      bottomRef.current?.scrollIntoView({
+        behavior: initialScrollFriendRef.current === selectedFriendId
+          ? "auto"
+          : "smooth",
+        block: "end",
+      });
+      setShowScrollToBottom(false);
+    }
+  }, [messages, loadingMessages, selectedFriendId]);
+
+  function handleMessagesScroll() {
+    const element = messagesScrollRef.current;
+    if (!element) return;
+
+    const distanceFromBottom =
+      element.scrollHeight - element.scrollTop - element.clientHeight;
+    const atBottom = distanceFromBottom <= 100;
+
+    wasAtBottomRef.current = atBottom;
+    setShowScrollToBottom(!atBottom && messages.length > 0);
+  }
+
+  function scrollToLatestMessages() {
+    wasAtBottomRef.current = true;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    setShowScrollToBottom(false);
+  }
 
   // Выбор файла
   function handleFileSelect(event: ChangeEvent<HTMLInputElement>) {
@@ -1037,13 +1084,16 @@ export default function MessagesPage() {
                 </div>
 
                 {/* MESSAGES */}
-                <div
-                  className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse at top right, rgba(240,120,50,0.035), transparent 55%), #141517",
-                  }}
-                >
+                <div className="relative min-h-0 flex-1">
+                  <div
+                    ref={messagesScrollRef}
+                    onScroll={handleMessagesScroll}
+                    className="h-full space-y-5 overflow-y-auto p-4 sm:p-6"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse at top right, rgba(240,120,50,0.035), transparent 55%), #141517",
+                    }}
+                  >
                   {loadingMessages ? (
                     <div className="flex min-h-[300px] items-center justify-center">
                       <div className="text-center">
@@ -1278,7 +1328,26 @@ export default function MessagesPage() {
                     </>
                   )}
 
-                  <div ref={bottomRef} />
+                    <div ref={bottomRef} />
+                  </div>
+
+                  {showScrollToBottom && (
+                    <button
+                      type="button"
+                      onClick={scrollToLatestMessages}
+                      aria-label="Перейти к новым сообщениям"
+                      title="Перейти к новым сообщениям"
+                      className="absolute bottom-5 right-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border text-xl font-bold shadow-xl transition hover:-translate-y-0.5 hover:brightness-110"
+                      style={{
+                        background: C.orange,
+                        borderColor: "rgba(255,255,255,0.18)",
+                        color: "#17181A",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+                      }}
+                    >
+                      ↓
+                    </button>
+                  )}
                 </div>
 
                 {/* MESSAGE INPUT */}
