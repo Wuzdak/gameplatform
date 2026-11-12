@@ -22,6 +22,7 @@ export const metadata: Metadata = {
   description:
     "VEXORA — игровая платформа для покупки игр, создания собственной библиотеки и общения с игроками.",
   applicationName: "VEXORA",
+  icons: { icon: "/vexora-mark.svg" },
   keywords: [
     "VEXORA",
     "игры",
