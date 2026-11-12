@@ -843,7 +843,7 @@ export default function MessagesPage() {
 
         {/* CHAT */}
         <div
-          className="grid min-h-[680px] overflow-hidden rounded-2xl border shadow-2xl md:grid-cols-[290px_1fr]"
+          className="grid min-h-[680px] overflow-hidden rounded-2xl border shadow-2xl md:h-[680px] md:min-h-0 md:grid-cols-[290px_1fr]"
           style={{
             background: C.surface,
             borderColor: C.border,
@@ -852,7 +852,7 @@ export default function MessagesPage() {
         >
           {/* FRIENDS SIDEBAR */}
           <aside
-            className="flex min-h-0 flex-col border-b md:border-b-0 md:border-r"
+            className="flex min-h-0 flex-col overflow-hidden border-b md:border-b-0 md:border-r"
             style={{
               background: "#17181A",
               borderColor: C.border,
@@ -910,7 +910,7 @@ export default function MessagesPage() {
                 </Link>
               </div>
             ) : (
-              <div className="max-h-[320px] flex-1 overflow-y-auto md:max-h-none">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                 {friends.map((friend) => {
                   const presence = getPresence(friend);
                   const selected =
@@ -1020,7 +1020,7 @@ export default function MessagesPage() {
           </aside>
 
           {/* CHAT AREA */}
-          <section className="flex min-h-[580px] min-w-0 flex-col md:min-h-[680px]">
+          <section className="flex min-h-[580px] min-w-0 flex-col md:h-full md:min-h-0 md:overflow-hidden">
             {selectedFriend ? (
               <>
                 {/* CHAT HEADER */}
@@ -1088,7 +1088,7 @@ export default function MessagesPage() {
                   <div
                     ref={messagesScrollRef}
                     onScroll={handleMessagesScroll}
-                    className="h-full space-y-5 overflow-y-auto p-4 sm:p-6"
+                    className="h-full space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6"
                     style={{
                       background:
                         "radial-gradient(ellipse at top right, rgba(240,120,50,0.035), transparent 55%), #141517",
