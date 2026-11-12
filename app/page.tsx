@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import NotificationBell from "../components/notification-bell";
 
 type Game = {
   id: string;
@@ -299,6 +300,7 @@ export default function Home() {
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
+              <NotificationBell />
               {user ? (
                 <>
                   <Link
