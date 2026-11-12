@@ -41,7 +41,7 @@ function getTrailerEmbedUrl(value: string | null) {
 
   try {
     const url = new URL(value);
-    const host = url.hostname.replace(/^www\\./, "").toLowerCase();
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
 
     if (host === "youtu.be") {
       const id = url.pathname.split("/").filter(Boolean)[0];
@@ -51,13 +51,13 @@ function getTrailerEmbedUrl(value: string | null) {
     if (host === "youtube.com" || host === "m.youtube.com") {
       const id = url.searchParams.get("v");
       if (id) return `https://www.youtube-nocookie.com/embed/${id}`;
-      const match = url.pathname.match(/^\\/(?:embed|shorts)\\/([^/]+)/);
+      const match = url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/);
       return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : null;
     }
 
     if (host === "vimeo.com" || host === "player.vimeo.com") {
       const id = url.pathname.split("/").filter(Boolean).pop();
-      return id && /^\\d+$/.test(id) ? `https://player.vimeo.com/video/${id}` : null;
+      return id && /^\d+$/.test(id) ? `https://player.vimeo.com/video/${id}` : null;
     }
   } catch {
     return null;
