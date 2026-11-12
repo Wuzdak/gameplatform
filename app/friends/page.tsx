@@ -35,7 +35,7 @@ const C = {
   surface: "#121A2A",
   surface2: "#19243A",
   border: "#293650",
-  orange: "#3978FF",
+  orange: "#F07832",
   text: "#EDF3FF",
   muted: "#9AA8BD",
 };
@@ -83,7 +83,7 @@ function Avatar({
         src={value}
         alt={`Аватар ${displayName}`}
         className="h-11 w-11 shrink-0 rounded-full border object-cover"
-        style={{ borderColor: "rgba(57,120,255,0.3)" }}
+        style={{ borderColor: "rgba(240,120,50,0.3)" }}
       />
     );
   }
@@ -92,7 +92,7 @@ function Avatar({
     <div
       className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-black"
       style={{
-        background: "rgba(57,120,255,0.12)",
+        background: "rgba(240,120,50,0.12)",
         color: C.orange,
       }}
     >
@@ -477,7 +477,7 @@ export default function FriendsPage() {
             className="flex h-10 w-10 items-center justify-center rounded-xl text-black"
             style={{
               background: C.orange,
-              boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
+              boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
             }}
           >
             V
@@ -570,9 +570,9 @@ export default function FriendsPage() {
           <div
             className="mt-6 rounded-xl border p-4 text-sm"
             style={{
-              borderColor: "rgba(57,120,255,0.25)",
-              background: "rgba(57,120,255,0.08)",
-              color: "#C9D8FF",
+              borderColor: "rgba(240,120,50,0.25)",
+              background: "rgba(240,120,50,0.08)",
+              color: "#FFD0AE",
             }}
           >
             {message}
@@ -631,7 +631,7 @@ export default function FriendsPage() {
                       style={{
                         borderColor: C.orange,
                         color: C.orange,
-                        background: "rgba(57,120,255,0.10)",
+                        background: "rgba(240,120,50,0.10)",
                       }}
                     >
                       Открыть профиль
