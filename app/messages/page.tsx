@@ -496,10 +496,8 @@ export default function MessagesPage() {
     if (loadingMessages) return;
 
     if (wasAtBottomRef.current) {
-      bottomRef.current?.scrollIntoView({
-        behavior: "auto",
-        block: "end",
-      });
+      const element = messagesScrollRef.current;
+      if (element) element.scrollTop = element.scrollHeight;
       setShowScrollToBottom(false);
     } else {
       setShowScrollToBottom(messages.length > 0);
@@ -507,29 +505,21 @@ export default function MessagesPage() {
   }, [messages, loadingMessages, selectedFriendId]);
 
   function handleMessagesScroll() {
-    const bottom = bottomRef.current;
-    if (!bottom) return;
+    const element = messagesScrollRef.current;
+    if (!element) return;
 
-    const distanceFromBottom = bottom.getBoundingClientRect().bottom - window.innerHeight;
+    const distanceFromBottom =
+      element.scrollHeight - element.scrollTop - element.clientHeight;
     const atBottom = distanceFromBottom <= 100;
 
     wasAtBottomRef.current = atBottom;
     setShowScrollToBottom(!atBottom && messages.length > 0);
   }
 
-  useEffect(() => {
-    window.addEventListener("scroll", handleMessagesScroll, { passive: true });
-    window.addEventListener("resize", handleMessagesScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleMessagesScroll);
-      window.removeEventListener("resize", handleMessagesScroll);
-    };
-  }, [messages.length]);
-
   function scrollToLatestMessages() {
     wasAtBottomRef.current = true;
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const element = messagesScrollRef.current;
+    element?.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
     setShowScrollToBottom(false);
   }
 
@@ -1029,7 +1019,7 @@ export default function MessagesPage() {
           </aside>
 
           {/* CHAT AREA */}
-          <section className="flex min-w-0 flex-col">
+          <section className="flex h-[680px] min-w-0 flex-col">
             {selectedFriend ? (
               <>
                 {/* CHAT HEADER */}
@@ -1093,11 +1083,11 @@ export default function MessagesPage() {
                 </div>
 
                 {/* MESSAGES */}
-                <div className="relative">
+                <div className="relative flex min-h-0 flex-1">
                   <div
                     ref={messagesScrollRef}
                     onScroll={handleMessagesScroll}
-                    className="space-y-5 p-4 sm:p-6"
+                    className="h-full space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6"
                     style={{
                       background:
                         "radial-gradient(ellipse at top right, rgba(240,120,50,0.035), transparent 55%), #141517",
@@ -1346,7 +1336,7 @@ export default function MessagesPage() {
                       onClick={scrollToLatestMessages}
                       aria-label="Перейти к новым сообщениям"
                       title="Перейти к новым сообщениям"
-                      className="fixed bottom-5 right-5 z-20 flex h-11 w-11 items-center justify-center rounded-full border text-xl font-bold shadow-xl transition hover:-translate-y-0.5 hover:brightness-110"
+                      className="absolute bottom-5 right-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border text-xl font-bold shadow-xl transition hover:-translate-y-0.5 hover:brightness-110"
                       style={{
                         background: C.orange,
                         borderColor: "rgba(255,255,255,0.18)",
