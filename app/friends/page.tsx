@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
 type ProfileResult = {
@@ -623,17 +624,26 @@ export default function FriendsPage() {
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => sendRequest(profile.user_id)}
-                    disabled={busyId === profile.user_id}
-                    className="rounded-lg px-4 py-2 text-sm font-bold text-black transition hover:brightness-110 disabled:opacity-50"
-                    style={{ background: C.orange }}
-                  >
-                    {busyId === profile.user_id
-                      ? "Отправка..."
-                      : "Добавить в друзья"}
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={`/player/${profile.user_id}`}
+                      className="rounded-lg border px-4 py-2 text-sm font-semibold transition hover:bg-white/5"
+                      style={{ borderColor: C.border, color: C.text }}
+                    >
+                      Профиль
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => sendRequest(profile.user_id)}
+                      disabled={busyId === profile.user_id}
+                      className="rounded-lg px-4 py-2 text-sm font-bold text-black transition hover:brightness-110 disabled:opacity-50"
+                      style={{ background: C.orange }}
+                    >
+                      {busyId === profile.user_id
+                        ? "Отправка..."
+                        : "Добавить в друзья"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
