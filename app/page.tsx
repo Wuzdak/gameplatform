@@ -86,6 +86,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [playerProgress, setPlayerProgress] = useState<PlayerProgress | null>(null);
   const [recentAchievements, setRecentAchievements] = useState<RecentAchievement[]>([]);
 
@@ -130,6 +131,50 @@ export default function Home() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setUnreadMessages(0);
+      return;
+    }
+
+    let active = true;
+
+    async function loadUnreadMessages() {
+      const { count, error } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("receiver_id", user.id)
+        .eq("is_read", false);
+
+      if (active && !error) {
+        setUnreadMessages(count ?? 0);
+      }
+    }
+
+    void loadUnreadMessages();
+
+    const channel = supabase
+      .channel(`home-unread-messages-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${user.id}`,
+        },
+        () => {
+          void loadUnreadMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   useEffect(() => {
     let active = true;
@@ -559,7 +604,16 @@ export default function Home() {
             style={{ color: C.text }}
           >
             <span className="w-5 text-center text-lg" style={{ color: C.orange }}>✉</span>
-            Личные сообщения
+            <span className="min-w-0 flex-1">Личные сообщения</span>
+            {unreadMessages > 0 && (
+              <span
+                aria-label={`${unreadMessages} непрочитанных сообщений`}
+                className="flex min-w-6 items-center justify-center rounded-full px-2 py-1 text-[10px] font-black text-black"
+                style={{ background: C.orange }}
+              >
+                {unreadMessages > 99 ? "99+" : unreadMessages}
+              </span>
+            )}
           </Link>
 
           <Link
