@@ -236,14 +236,22 @@ export default function GroupsPage() {
 
       if (groupError || !group) throw groupError || new Error("Группа не создана.");
 
-      const memberRows = [
-        { group_id: group.id, user_id: userId, role: "owner" },
-        ...selectedFriendIds.map((friendId) => ({
-          group_id: group.id,
-          user_id: friendId,
-          role: "member",
-        })),
-      ];
+      // Сначала фиксируем владельца отдельным запросом:
+      // политики RLS проверяют права владельца при добавлении остальных участников.
+      const { error: ownerError } = await supabase
+        .from("chat_group_members")
+        .insert({ group_id: group.id, user_id: userId, role: "owner" });
+
+      if (ownerError) {
+        await supabase.from("chat_groups").delete().eq("id", group.id);
+        throw ownerError;
+      }
+
+      const memberRows = selectedFriendIds.map((friendId) => ({
+        group_id: group.id,
+        user_id: friendId,
+        role: "member",
+      }));
 
       const { error: membersError } = await supabase
         .from("chat_group_members")
