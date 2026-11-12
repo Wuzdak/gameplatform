@@ -19,7 +19,7 @@ const C = {
   surface: "#121A2A",
   surface2: "#19243A",
   border: "#293650",
-  orange: "#3978FF",
+  orange: "#F07832",
   text: "#EDF3FF",
   muted: "#9AA8BD",
 };
@@ -153,7 +153,7 @@ export default function WishlistPage() {
     return (
       <main className="flex min-h-screen items-center justify-center text-white" style={{ background: C.bg }}>
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#293650] border-t-[#3978FF]" />
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#293650] border-t-[#F07832]" />
           <p className="mt-4 text-sm" style={{ color: C.muted }}>Загружаем избранное...</p>
         </div>
       </main>
@@ -190,7 +190,7 @@ export default function WishlistPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
-        <Link href="/profile" className="text-sm transition hover:text-[#3978FF]" style={{ color: C.muted }}>← Назад в профиль</Link>
+        <Link href="/profile" className="text-sm transition hover:text-[#F07832]" style={{ color: C.muted }}>← Назад в профиль</Link>
 
         <section className="mt-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
@@ -213,7 +213,7 @@ export default function WishlistPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Поиск по избранному..."
-            className="w-full max-w-md rounded-xl border px-4 py-3 text-sm text-white outline-none transition focus:border-[#3978FF]"
+            className="w-full max-w-md rounded-xl border px-4 py-3 text-sm text-white outline-none transition focus:border-[#F07832]"
             style={{ background: C.surface, borderColor: C.border }}
           />
         </div>
@@ -240,7 +240,7 @@ export default function WishlistPage() {
                   <span className="absolute left-3 top-3 rounded-lg border border-white/10 bg-black/60 px-3 py-1 text-xs font-bold text-white backdrop-blur">{game.genre || "Игра"}</span>
                 </Link>
                 <div className="p-5">
-                  <Link href={`/game/${game.id}`} className="line-clamp-1 text-lg font-black transition hover:text-[#3978FF]">{game.title}</Link>
+                  <Link href={`/game/${game.id}`} className="line-clamp-1 text-lg font-black transition hover:text-[#F07832]">{game.title}</Link>
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <span className="font-bold" style={{ color: C.orange }}>{formatPrice(game.price)}</span>
                     <span className="text-xs" style={{ color: C.muted }}>Добавлено {game.created_at ? new Date(game.created_at).toLocaleDateString("ru-RU") : ""}</span>
