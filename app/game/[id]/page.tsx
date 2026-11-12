@@ -396,6 +396,13 @@ function GamePageContent() {
                       ? `${averageRating.toFixed(1)} из 5 · ${reviews.length} отзывов`
                       : "Пока нет оценок"}
                   </span>
+
+                  <a
+                    href="#reviews"
+                    className="rounded-lg border border-[#F07832]/30 bg-[#F07832]/10 px-3 py-2 text-xs font-bold text-[#F07832] transition hover:border-[#F07832] hover:bg-[#F07832]/20"
+                  >
+                    Читать отзывы ↓
+                  </a>
                 </div>
 
                 <div className="mt-7">
@@ -481,15 +488,22 @@ function GamePageContent() {
                       key={`${url}-${index}`}
                       type="button"
                       onClick={() => setSelectedScreenshot(url)}
-                      className="group relative overflow-hidden rounded-xl border border-[#303236] bg-[#1B1D20] text-left"
+                      aria-label={`Открыть скриншот ${index + 1} игры ${game.title}`}
+                      className="group relative aspect-video overflow-hidden rounded-xl border border-[#303236] bg-[#1B1D20] text-left shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-[#F07832]/60 hover:shadow-[#F07832]/10"
                     >
                       <img
                         src={url}
                         alt={`Скриншот ${index + 1} игры ${game.title}`}
-                        className="h-52 w-full object-cover transition duration-300 group-hover:scale-105"
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       />
-
-                      <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/15" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent opacity-70 transition group-hover:opacity-100" />
+                      <span className="absolute left-3 top-3 rounded-md border border-white/15 bg-black/50 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="absolute bottom-3 left-3 translate-y-2 text-xs font-bold text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                        Открыть изображение ↗
+                      </span>
                     </button>
                   ))}
                 </div>
