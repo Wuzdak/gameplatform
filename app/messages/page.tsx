@@ -247,7 +247,8 @@ export default function MessagesPage() {
     };
   }, []);
 
-  // Помечаем входящие сообщения выбранного друга как прочитанные
+  // Помечаем входящие сообщения прочитанными и удаляем уведомления
+  // о новых сообщениях от выбранного собеседника.
   const markMessagesRead = useCallback(async () => {
     if (!userId || !selectedFriendId) return;
 
@@ -258,6 +259,21 @@ export default function MessagesPage() {
     if (error) {
       console.error("Не удалось отметить сообщения прочитанными:", error);
       setNotice("Не удалось отметить сообщения прочитанными: " + error.message);
+      return;
+    }
+
+    const { error: notificationError } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("user_id", userId)
+      .eq("actor_id", selectedFriendId)
+      .eq("type", "message");
+
+    if (notificationError) {
+      console.error(
+        "Не удалось удалить уведомления о сообщениях:",
+        notificationError
+      );
     }
   }, [userId, selectedFriendId]);
 
