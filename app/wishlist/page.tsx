@@ -15,13 +15,13 @@ type WishlistGame = {
 };
 
 const C = {
-  bg: "#111214",
-  surface: "#1B1D20",
-  surface2: "#242629",
-  border: "#303236",
-  orange: "#F07832",
-  text: "#E7E7E7",
-  muted: "#92949A",
+  bg: "#0A0E18",
+  surface: "#121A2A",
+  surface2: "#19243A",
+  border: "#293650",
+  orange: "#3978FF",
+  text: "#EDF3FF",
+  muted: "#9AA8BD",
 };
 
 function formatPrice(price: number) {
@@ -153,7 +153,7 @@ export default function WishlistPage() {
     return (
       <main className="flex min-h-screen items-center justify-center text-white" style={{ background: C.bg }}>
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#303236] border-t-[#F07832]" />
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#293650] border-t-[#3978FF]" />
           <p className="mt-4 text-sm" style={{ color: C.muted }}>Загружаем избранное...</p>
         </div>
       </main>
@@ -190,7 +190,7 @@ export default function WishlistPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
-        <Link href="/profile" className="text-sm transition hover:text-[#F07832]" style={{ color: C.muted }}>← Назад в профиль</Link>
+        <Link href="/profile" className="text-sm transition hover:text-[#3978FF]" style={{ color: C.muted }}>← Назад в профиль</Link>
 
         <section className="mt-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
@@ -213,7 +213,7 @@ export default function WishlistPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Поиск по избранному..."
-            className="w-full max-w-md rounded-xl border px-4 py-3 text-sm text-white outline-none transition focus:border-[#F07832]"
+            className="w-full max-w-md rounded-xl border px-4 py-3 text-sm text-white outline-none transition focus:border-[#3978FF]"
             style={{ background: C.surface, borderColor: C.border }}
           />
         </div>
@@ -231,7 +231,7 @@ export default function WishlistPage() {
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filteredGames.map((game) => (
               <article key={game.id} className="overflow-hidden rounded-2xl border" style={{ background: C.surface, borderColor: C.border }}>
-                <Link href={`/game/${game.id}`} className="group relative block aspect-[16/9] overflow-hidden bg-[#242629]">
+                <Link href={`/game/${game.id}`} className="group relative block aspect-[16/9] overflow-hidden bg-[#19243A]">
                   {game.image_url ? (
                     <img src={game.image_url} alt={game.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                   ) : (
@@ -240,7 +240,7 @@ export default function WishlistPage() {
                   <span className="absolute left-3 top-3 rounded-lg border border-white/10 bg-black/60 px-3 py-1 text-xs font-bold text-white backdrop-blur">{game.genre || "Игра"}</span>
                 </Link>
                 <div className="p-5">
-                  <Link href={`/game/${game.id}`} className="line-clamp-1 text-lg font-black transition hover:text-[#F07832]">{game.title}</Link>
+                  <Link href={`/game/${game.id}`} className="line-clamp-1 text-lg font-black transition hover:text-[#3978FF]">{game.title}</Link>
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <span className="font-bold" style={{ color: C.orange }}>{formatPrice(game.price)}</span>
                     <span className="text-xs" style={{ color: C.muted }}>Добавлено {game.created_at ? new Date(game.created_at).toLocaleDateString("ru-RU") : ""}</span>
