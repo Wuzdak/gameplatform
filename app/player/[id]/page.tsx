@@ -125,7 +125,6 @@ export default function PublicPlayerPage() {
     setLoadingList(true);
     setListProfiles([]);
 
-    const column = type === "followers" ? "follower_id" : "following_id";
     const { data, error } = await supabase
       .from("user_follows")
       .select("follower_id, following_id")
