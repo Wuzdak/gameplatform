@@ -86,7 +86,7 @@ export default function DeveloperPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#0b0d14] p-10 text-white">
+      <main className="min-h-screen bg-[#0A0E18] p-10 text-white">
         Загрузка кабинета...
       </main>
     );
@@ -94,10 +94,10 @@ export default function DeveloperPage() {
 
   if (!user) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#0b0d14] text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#0A0E18] text-white">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Войди в аккаунт</h1>
-          <a href="/auth" className="mt-4 block text-violet-400">
+          <a href="/auth" className="mt-4 block text-blue-400">
             Перейти ко входу
           </a>
         </div>
@@ -106,15 +106,15 @@ export default function DeveloperPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0d14] px-5 py-12 text-white">
+    <main className="min-h-screen bg-[#0A0E18] px-5 py-12 text-white">
       <div className="mx-auto max-w-3xl">
         <a href="/" className="text-2xl font-black">
-          Game<span className="text-violet-400">Platform</span>
+          Game<span className="text-blue-400">Platform</span>
         </a>
 
-        <div className="mt-10 rounded-3xl border border-white/10 bg-[#121622] p-8">
-          <p className="text-sm font-bold uppercase tracking-widest text-violet-400">
-            GamePlatform Studio
+        <div className="mt-10 rounded-3xl border border-white/10 bg-[#121A2A] p-8">
+          <p className="text-sm font-bold uppercase tracking-widest text-blue-400">
+            VEXORA Studio
           </p>
 
           <h1 className="mt-3 text-3xl font-black">
@@ -122,11 +122,11 @@ export default function DeveloperPage() {
           </h1>
 
           <p className="mt-3 text-gray-400">
-            Подавай заявки на публикацию своих игр в GamePlatform.
+            Подавай заявки на публикацию своих игр в VEXORA.
           </p>
 
           {application ? (
-            <div className="mt-8 rounded-2xl border border-white/10 bg-[#0b0d14] p-6">
+            <div className="mt-8 rounded-2xl border border-white/10 bg-[#0A0E18] p-6">
               <h2 className="text-xl font-bold">
                 Твоя заявка
               </h2>
@@ -149,7 +149,7 @@ export default function DeveloperPage() {
                 Статус заявки
               </p>
 
-              <p className="mt-2 font-bold text-violet-400">
+              <p className="mt-2 font-bold text-blue-400">
                 {statusLabels[application.status]}
               </p>
 
@@ -170,7 +170,7 @@ export default function DeveloperPage() {
                   required
                   maxLength={60}
                   placeholder="Например, Wuzdak Studio"
-                  className="w-full rounded-xl border border-white/10 bg-[#0b0d14] px-4 py-3 outline-none focus:border-violet-500"
+                  className="w-full rounded-xl border border-white/10 bg-[#0A0E18] px-4 py-3 outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -186,14 +186,14 @@ export default function DeveloperPage() {
                   maxLength={1000}
                   rows={5}
                   placeholder="Расскажи, какие игры ты планируешь создавать..."
-                  className="w-full resize-y rounded-xl border border-white/10 bg-[#0b0d14] px-4 py-3 outline-none focus:border-violet-500"
+                  className="w-full resize-y rounded-xl border border-white/10 bg-[#0A0E18] px-4 py-3 outline-none focus:border-blue-500"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={sending}
-                className="w-full rounded-xl bg-violet-600 px-5 py-3.5 font-bold transition hover:bg-violet-500 disabled:opacity-60"
+                className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-bold transition hover:bg-blue-500 disabled:opacity-60"
               >
                 {sending ? "Отправка..." : "Отправить заявку"}
               </button>
@@ -201,7 +201,7 @@ export default function DeveloperPage() {
           )}
 
           {message && (
-            <p className="mt-5 rounded-xl border border-white/10 bg-[#0b0d14] p-4 text-sm text-gray-300">
+            <p className="mt-5 rounded-xl border border-white/10 bg-[#0A0E18] p-4 text-sm text-gray-300">
               {message}
             </p>
           )}
@@ -209,7 +209,7 @@ export default function DeveloperPage() {
 
         <a
           href="/"
-          className="mt-6 block text-center text-sm text-gray-500 hover:text-violet-400"
+          className="mt-6 block text-center text-sm text-gray-500 hover:text-blue-400"
         >
           ← Вернуться в магазин
         </a>
