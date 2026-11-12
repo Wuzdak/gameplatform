@@ -18,7 +18,7 @@ const C = {
   surface: "#121A2A",
   surface2: "#19243A",
   border: "#293650",
-  orange: "#3978FF",
+  orange: "#F07832",
   text: "#EDF3FF",
   muted: "#9AA8BD",
 };
@@ -70,7 +70,7 @@ function Avatar({
         src={value}
         alt={`Аватар ${name}`}
         className={`${size} shrink-0 rounded-3xl border object-cover`}
-        style={{ borderColor: "rgba(57,120,255,0.3)" }}
+        style={{ borderColor: "rgba(240,120,50,0.3)" }}
       />
     );
   }
@@ -79,8 +79,8 @@ function Avatar({
     <div
       className={`${size} flex shrink-0 items-center justify-center rounded-3xl border text-4xl font-black`}
       style={{
-        background: "rgba(57,120,255,0.12)",
-        borderColor: "rgba(57,120,255,0.3)",
+        background: "rgba(240,120,50,0.12)",
+        borderColor: "rgba(240,120,50,0.3)",
         color: C.orange,
       }}
     >
@@ -97,8 +97,8 @@ function Logo({ compact = false }: { compact?: boolean }) {
           compact ? "h-9 w-9 text-lg" : "h-10 w-10 text-xl"
         }`}
         style={{
-          background: "linear-gradient(135deg, #3978FF 0%, #83B2FF 100%)",
-          boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
+          background: "linear-gradient(135deg, #F07832 0%, #FF9A54 100%)",
+          boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
         }}
       >
         V
@@ -583,7 +583,7 @@ export default function ProfilePage() {
             <span
               className="mt-3 inline-block rounded-lg px-3 py-1 text-[10px] font-black uppercase tracking-wider"
               style={{
-                background: "rgba(57,120,255,0.12)",
+                background: "rgba(240,120,50,0.12)",
                 color: C.orange,
               }}
             >
@@ -663,7 +663,7 @@ export default function ProfilePage() {
               style={
                 index === 0
                   ? {
-                      background: "rgba(57,120,255,0.1)",
+                      background: "rgba(240,120,50,0.1)",
                       color: C.orange,
                     }
                   : { color: C.text }
@@ -775,7 +775,7 @@ export default function ProfilePage() {
           >
             <div
               className="absolute -right-16 -top-16 h-48 w-48 rounded-full blur-3xl"
-              style={{ background: "rgba(57,120,255,0.12)" }}
+              style={{ background: "rgba(240,120,50,0.12)" }}
             />
 
             <div className="relative">
@@ -791,8 +791,8 @@ export default function ProfilePage() {
               <div
                 className="mt-5 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold"
                 style={{
-                  background: "rgba(57,120,255,0.08)",
-                  borderColor: "rgba(57,120,255,0.2)",
+                  background: "rgba(240,120,50,0.08)",
+                  borderColor: "rgba(240,120,50,0.2)",
                   color: C.orange,
                 }}
               >
@@ -940,7 +940,7 @@ export default function ProfilePage() {
                     className="flex flex-col items-center gap-2 rounded-xl border p-3 transition hover:-translate-y-1 disabled:opacity-50"
                     style={{
                       background: selected
-                        ? "rgba(57,120,255,0.12)"
+                        ? "rgba(240,120,50,0.12)"
                         : C.surface2,
                       borderColor: selected ? C.orange : C.border,
                     }}
@@ -973,9 +973,9 @@ export default function ProfilePage() {
               role="status"
               className="mt-5 rounded-xl border p-4 text-sm"
               style={{
-                background: "rgba(57,120,255,0.08)",
-                borderColor: "rgba(57,120,255,0.25)",
-                color: "#C9D8FF",
+                background: "rgba(240,120,50,0.08)",
+                borderColor: "rgba(240,120,50,0.25)",
+                color: "#FFD0AE",
               }}
             >
               {avatarMessage}
@@ -1014,7 +1014,7 @@ export default function ProfilePage() {
                   <span
                     className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl"
                     style={{
-                      background: "rgba(57,120,255,0.1)",
+                      background: "rgba(240,120,50,0.1)",
                       color: C.orange,
                     }}
                   >
@@ -1048,8 +1048,8 @@ export default function ProfilePage() {
           <section
             className="mt-8 rounded-2xl border p-6 sm:p-8"
             style={{
-              background: "linear-gradient(110deg, #252F3D, #121A2A)",
-              borderColor: "rgba(57,120,255,0.3)",
+              background: "linear-gradient(110deg, #292B2F, #121A2A)",
+              borderColor: "rgba(240,120,50,0.3)",
             }}
           >
             <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
