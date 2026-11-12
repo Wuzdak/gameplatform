@@ -199,7 +199,7 @@ export default function NotificationBell() {
         {unreadCount > 0 && (
           <span
             className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black text-black"
-            style={{ background: "#3978FF" }}
+            style={{ background: "#F07832" }}
           >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
@@ -235,7 +235,7 @@ export default function NotificationBell() {
                 onClick={markAllAsRead}
                 disabled={unreadCount === 0 || updating}
                 className="text-xs font-semibold transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ color: "#3978FF" }}
+                style={{ color: "#F07832" }}
               >
                 {updating ? "Обработка..." : "Прочитать все"}
               </button>
@@ -268,12 +268,12 @@ export default function NotificationBell() {
                       borderColor: "#293650",
                       background: notification.is_read
                         ? "transparent"
-                        : "rgba(57,120,255,0.06)",
+                        : "rgba(240,120,50,0.06)",
                     }}
                   >
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
-                      style={{ background: "#292B2F", color: "#3978FF" }}
+                      style={{ background: "#292B2F", color: "#F07832" }}
                     >
                       {notificationIcon(notification.type)}
                     </div>
@@ -286,7 +286,7 @@ export default function NotificationBell() {
                         {!notification.is_read && (
                           <span
                             className="mt-1 h-2 w-2 shrink-0 rounded-full"
-                            style={{ background: "#3978FF" }}
+                            style={{ background: "#F07832" }}
                           />
                         )}
                       </div>
@@ -311,7 +311,7 @@ export default function NotificationBell() {
                 href="/notifications"
                 onClick={() => setOpen(false)}
                 className="text-xs font-bold transition hover:text-white"
-                style={{ color: "#3978FF" }}
+                style={{ color: "#F07832" }}
               >
                 Все уведомления →
               </Link>
