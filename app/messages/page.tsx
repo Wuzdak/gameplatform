@@ -946,7 +946,7 @@ export default function MessagesPage() {
         >
           {/* FRIENDS SIDEBAR */}
           <aside
-            className="flex min-w-0 flex-col border-b md:border-b-0 md:border-r"
+            className={`min-w-0 flex-col border-b md:border-b-0 md:border-r ${selectedFriend || selectedGroup ? "hidden md:flex" : "flex"}`}
             style={{
               background: "#101827",
               borderColor: C.border,
@@ -1130,13 +1130,17 @@ export default function MessagesPage() {
           </aside>
 
           {/* CHAT AREA */}
-          <section className="flex h-[680px] w-full min-w-0 flex-col">
+          <section className={`h-[min(680px,calc(100dvh-180px))] min-h-[520px] w-full min-w-0 flex-col md:h-[680px] ${selectedFriend || selectedGroup ? "flex" : "hidden md:flex"}`}>
 
             {selectedGroup ? (
               <>
-                <div className="flex items-center justify-between gap-3 border-b px-5 py-4" style={{ background: "#191A1D", borderColor: C.border }}>
-                  <div className="flex min-w-0 items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(57,120,255,0.12)", color: C.orange }}>♧</span><div className="min-w-0"><h2 className="truncate font-black">{selectedGroup.name}</h2><p className="mt-1 text-xs" style={{ color: C.muted }}>{selectedGroupMembers.length} участников · Групповой чат</p></div></div>
-                  <span className="rounded-lg border px-3 py-2 text-xs" style={{ borderColor: C.border, color: C.muted }}>Группа</span>
+                <div className="flex items-center justify-between gap-3 border-b px-4 py-4 sm:px-5" style={{ background: "#191A1D", borderColor: C.border }}>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <button type="button" onClick={() => setSelectedGroupId(null)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-lg md:hidden" style={{ borderColor: C.border, color: C.orange }} aria-label="Назад к диалогам">←</button>
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(57,120,255,0.12)", color: C.orange }}>♧</span>
+                    <div className="min-w-0"><h2 className="truncate font-black">{selectedGroup.name}</h2><p className="mt-1 text-xs" style={{ color: C.muted }}>{selectedGroupMembers.length} участников · Групповой чат</p></div>
+                  </div>
+                  <span className="shrink-0 rounded-lg border px-2.5 py-2 text-xs sm:px-3" style={{ borderColor: C.border, color: C.muted }}>Группа</span>
                 </div>
                 <div className="flex-1 space-y-3 overflow-y-auto p-4 sm:p-6" style={{ background: "#141517" }}>
                   {groupMessages.length === 0 ? <div className="flex h-full min-h-[300px] items-center justify-center text-center"><div><div className="text-4xl">♧</div><h3 className="mt-4 font-black">Начни общение!</h3><p className="mt-2 text-sm" style={{ color: C.muted }}>Отправь первое сообщение в эту группу.</p></div></div> : groupMessages.map((message) => { const mine = message.sender_id === userId; const author = friends.find((friend) => friend.friend_id === message.sender_id)?.full_name || (mine ? "Вы" : "Участник"); return <div key={message.id} className={mine ? "ml-auto max-w-[85%] text-right" : "max-w-[85%]"}>{!mine && <p className="mb-1 px-1 text-xs font-semibold" style={{ color: C.orange }}>{author}</p>}<div className="inline-block rounded-2xl px-4 py-3 text-left text-sm" style={{ background: mine ? C.orange : C.surface2, color: mine ? "#101827" : C.text }}><p className="whitespace-pre-wrap break-words">{message.content}</p><p className="mt-2 text-right text-[10px]" style={{ opacity: 0.65 }}>{formatTime(message.created_at)}</p></div></div>; })}
@@ -1158,6 +1162,7 @@ export default function MessagesPage() {
                   }}
                 >
                   <div className="flex min-w-0 items-center gap-3">
+                    <button type="button" onClick={() => setSelectedFriendId(null)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-lg md:hidden" style={{ borderColor: C.border, color: C.orange }} aria-label="Назад к диалогам">←</button>
                     <Avatar
                       value={selectedFriend.avatar_url}
                       name={selectedFriend.full_name}
