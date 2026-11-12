@@ -497,12 +497,12 @@ export default function MessagesPage() {
 
     if (wasAtBottomRef.current) {
       bottomRef.current?.scrollIntoView({
-        behavior: initialScrollFriendRef.current === selectedFriendId
-          ? "auto"
-          : "smooth",
+        behavior: "auto",
         block: "end",
       });
       setShowScrollToBottom(false);
+    } else {
+      setShowScrollToBottom(messages.length > 0);
     }
   }, [messages, loadingMessages, selectedFriendId]);
 
