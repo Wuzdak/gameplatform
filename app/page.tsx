@@ -38,7 +38,7 @@ const C = {
   surface: "#121A2A",
   surface2: "#19243A",
   border: "#293650",
-  orange: "#3978FF",
+  orange: "#F07832",
   text: "#EDF3FF",
   muted: "#9AA8BD",
 };
@@ -58,7 +58,7 @@ function Logo({ size = "normal" }: { size?: "normal" | "large" }) {
           large ? "h-12 w-12 text-2xl" : "h-9 w-9 text-xl"
         }`}
         style={{
-          background: "linear-gradient(135deg, #3978FF 0%, #83B2FF 100%)",
+          background: "linear-gradient(135deg, #F07832 0%, #FF9A54 100%)",
           boxShadow: "0 5px 25px rgba(57,120,255,0.22)",
         }}
       >
@@ -1025,7 +1025,7 @@ export default function Home() {
                     style={{
                       background: game.image_url
                         ? `url("${game.image_url}") center/cover`
-                        : "linear-gradient(135deg,#252F3D,#121A2A)",
+                        : "linear-gradient(135deg,#292B2F,#121A2A)",
                     }}
                   >
                     {!game.image_url && (
@@ -1052,7 +1052,7 @@ export default function Home() {
 
                     <span
                       className="absolute bottom-4 left-4 text-xs font-bold"
-                      style={{ color: "#C9D8FF" }}
+                      style={{ color: "#FFD0AE" }}
                     >
                       {game.genre}
                     </span>
@@ -1097,7 +1097,7 @@ export default function Home() {
                         className="mt-3 rounded-lg p-3 text-xs"
                         style={{
                           background: "rgba(57,120,255,0.08)",
-                          color: "#B8CEFF",
+                          color: "#F5B184",
                         }}
                       >
                         {messages[game.id]}
