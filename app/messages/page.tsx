@@ -42,13 +42,13 @@ type GroupMember = { group_id: string; user_id: string; role: "owner" | "admin" 
 type GroupMessage = { id: string; group_id: string; sender_id: string; content: string; created_at: string };
 
 const C = {
-  bg: "#111214",
-  surface: "#1B1D20",
-  surface2: "#242629",
-  border: "#303236",
-  orange: "#F07832",
-  text: "#E7E7E7",
-  muted: "#92949A",
+  bg: "#0A0E18",
+  surface: "#121A2A",
+  surface2: "#19243A",
+  border: "#293650",
+  orange: "#3978FF",
+  text: "#EDF3FF",
+  muted: "#9AA8BD",
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
@@ -111,7 +111,7 @@ function Avatar({
         src={value}
         alt={`Аватар ${displayName}`}
         className={`${size} shrink-0 rounded-2xl border object-cover`}
-        style={{ borderColor: "rgba(240,120,50,0.3)" }}
+        style={{ borderColor: "rgba(57,120,255,0.3)" }}
       />
     );
   }
@@ -120,7 +120,7 @@ function Avatar({
     <div
       className={`${size} flex shrink-0 items-center justify-center rounded-2xl font-black`}
       style={{
-        background: "rgba(240,120,50,0.12)",
+        background: "rgba(57,120,255,0.12)",
         color: C.orange,
       }}
     >
@@ -171,10 +171,10 @@ function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2.5">
       <div
-        className="flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-black"
+        className="flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-white"
         style={{
-          background: C.orange,
-          boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
+          background: "linear-gradient(135deg, #3978FF 0%, #8257E5 100%)",
+          boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
         }}
       >
         V
@@ -824,7 +824,7 @@ export default function MessagesPage() {
           <div
             className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
             style={{
-              background: "rgba(240,120,50,0.12)",
+              background: "rgba(57,120,255,0.12)",
               color: C.orange,
             }}
           >
@@ -948,7 +948,7 @@ export default function MessagesPage() {
           <aside
             className="flex min-w-0 flex-col border-b md:border-b-0 md:border-r"
             style={{
-              background: "#17181A",
+              background: "#101827",
               borderColor: C.border,
             }}
           >
@@ -962,7 +962,7 @@ export default function MessagesPage() {
                 <span
                   className="rounded-lg px-2.5 py-1 text-xs font-bold"
                   style={{
-                    background: "rgba(240,120,50,0.12)",
+                    background: "rgba(57,120,255,0.12)",
                     color: C.orange,
                   }}
                 >
@@ -980,7 +980,7 @@ export default function MessagesPage() {
                 <div
                   className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl"
                   style={{
-                    background: "rgba(240,120,50,0.1)",
+                    background: "rgba(57,120,255,0.1)",
                     color: C.orange,
                   }}
                 >
@@ -1028,7 +1028,7 @@ export default function MessagesPage() {
                       style={{
                         borderColor: "rgba(255,255,255,0.04)",
                         background: selected
-                          ? "rgba(240,120,50,0.1)"
+                          ? "rgba(57,120,255,0.1)"
                           : "transparent",
                       }}
                     >
@@ -1050,7 +1050,7 @@ export default function MessagesPage() {
                         <span
                           className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-[3px]"
                           style={{
-                            borderColor: "#17181A",
+                            borderColor: "#101827",
                             background:
                               presence === "online"
                                 ? "#22C55E"
@@ -1103,7 +1103,7 @@ export default function MessagesPage() {
                 <h3 className="text-xs font-black uppercase tracking-wider" style={{ color: C.muted }}>Группы</h3>
                 <button type="button" onClick={() => setShowCreateGroup((value) => !value)} className="rounded-lg px-2.5 py-1.5 text-xs font-bold text-black" style={{ background: C.orange }}>＋ Создать</button>
               </div>
-              {groups.length === 0 ? <p className="text-xs" style={{ color: C.muted }}>Пока нет групп. Создай группу и добавь друзей.</p> : <div className="space-y-1">{groups.map((group) => <button key={group.id} type="button" onClick={() => { setSelectedGroupId(group.id); setSelectedFriendId(null); setNotice(""); }} className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition" style={{ background: selectedGroupId === group.id ? "rgba(240,120,50,0.12)" : "transparent", border: selectedGroupId === group.id ? "1px solid " + C.orange : "1px solid transparent" }}><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(240,120,50,0.12)", color: C.orange }}>♧</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold">{group.name}</span><span className="mt-1 block text-[10px]" style={{ color: C.muted }}>{groupMembers.filter((member) => member.group_id === group.id).length} участников</span></span></button>)}</div>}
+              {groups.length === 0 ? <p className="text-xs" style={{ color: C.muted }}>Пока нет групп. Создай группу и добавь друзей.</p> : <div className="space-y-1">{groups.map((group) => <button key={group.id} type="button" onClick={() => { setSelectedGroupId(group.id); setSelectedFriendId(null); setNotice(""); }} className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition" style={{ background: selectedGroupId === group.id ? "rgba(57,120,255,0.12)" : "transparent", border: selectedGroupId === group.id ? "1px solid " + C.orange : "1px solid transparent" }}><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(57,120,255,0.12)", color: C.orange }}>♧</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold">{group.name}</span><span className="mt-1 block text-[10px]" style={{ color: C.muted }}>{groupMembers.filter((member) => member.group_id === group.id).length} участников</span></span></button>)}</div>}
               {showCreateGroup && <form onSubmit={createGroup} className="mt-3 rounded-xl border p-3" style={{ background: C.surface, borderColor: C.border }}>
                 <label htmlFor="messages-group-name" className="text-xs font-bold">Название группы</label>
                 <input id="messages-group-name" value={groupName} onChange={(event) => setGroupName(event.target.value)} maxLength={60} required placeholder="Название" className="mt-2 w-full rounded-lg border px-3 py-2 text-sm outline-none" style={{ background: C.bg, borderColor: C.border, color: C.text }} />
@@ -1135,11 +1135,11 @@ export default function MessagesPage() {
             {selectedGroup ? (
               <>
                 <div className="flex items-center justify-between gap-3 border-b px-5 py-4" style={{ background: "#191A1D", borderColor: C.border }}>
-                  <div className="flex min-w-0 items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(240,120,50,0.12)", color: C.orange }}>♧</span><div className="min-w-0"><h2 className="truncate font-black">{selectedGroup.name}</h2><p className="mt-1 text-xs" style={{ color: C.muted }}>{selectedGroupMembers.length} участников · Групповой чат</p></div></div>
+                  <div className="flex min-w-0 items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl text-xl" style={{ background: "rgba(57,120,255,0.12)", color: C.orange }}>♧</span><div className="min-w-0"><h2 className="truncate font-black">{selectedGroup.name}</h2><p className="mt-1 text-xs" style={{ color: C.muted }}>{selectedGroupMembers.length} участников · Групповой чат</p></div></div>
                   <span className="rounded-lg border px-3 py-2 text-xs" style={{ borderColor: C.border, color: C.muted }}>Группа</span>
                 </div>
                 <div className="flex-1 space-y-3 overflow-y-auto p-4 sm:p-6" style={{ background: "#141517" }}>
-                  {groupMessages.length === 0 ? <div className="flex h-full min-h-[300px] items-center justify-center text-center"><div><div className="text-4xl">♧</div><h3 className="mt-4 font-black">Начни общение!</h3><p className="mt-2 text-sm" style={{ color: C.muted }}>Отправь первое сообщение в эту группу.</p></div></div> : groupMessages.map((message) => { const mine = message.sender_id === userId; const author = friends.find((friend) => friend.friend_id === message.sender_id)?.full_name || (mine ? "Вы" : "Участник"); return <div key={message.id} className={mine ? "ml-auto max-w-[85%] text-right" : "max-w-[85%]"}>{!mine && <p className="mb-1 px-1 text-xs font-semibold" style={{ color: C.orange }}>{author}</p>}<div className="inline-block rounded-2xl px-4 py-3 text-left text-sm" style={{ background: mine ? C.orange : C.surface2, color: mine ? "#17181A" : C.text }}><p className="whitespace-pre-wrap break-words">{message.content}</p><p className="mt-2 text-right text-[10px]" style={{ opacity: 0.65 }}>{formatTime(message.created_at)}</p></div></div>; })}
+                  {groupMessages.length === 0 ? <div className="flex h-full min-h-[300px] items-center justify-center text-center"><div><div className="text-4xl">♧</div><h3 className="mt-4 font-black">Начни общение!</h3><p className="mt-2 text-sm" style={{ color: C.muted }}>Отправь первое сообщение в эту группу.</p></div></div> : groupMessages.map((message) => { const mine = message.sender_id === userId; const author = friends.find((friend) => friend.friend_id === message.sender_id)?.full_name || (mine ? "Вы" : "Участник"); return <div key={message.id} className={mine ? "ml-auto max-w-[85%] text-right" : "max-w-[85%]"}>{!mine && <p className="mb-1 px-1 text-xs font-semibold" style={{ color: C.orange }}>{author}</p>}<div className="inline-block rounded-2xl px-4 py-3 text-left text-sm" style={{ background: mine ? C.orange : C.surface2, color: mine ? "#101827" : C.text }}><p className="whitespace-pre-wrap break-words">{message.content}</p><p className="mt-2 text-right text-[10px]" style={{ opacity: 0.65 }}>{formatTime(message.created_at)}</p></div></div>; })}
                 </div>
                 <form onSubmit={sendGroupMessage} className="flex gap-2 border-t p-4" style={{ background: "#191A1D", borderColor: C.border }}>
                   <input value={groupText} onChange={(event) => setGroupText(event.target.value)} maxLength={5000} placeholder="Сообщение в группу..." className="min-w-0 flex-1 rounded-xl border px-4 py-3 text-sm outline-none" style={{ background: C.bg, borderColor: C.border, color: C.text }} />
@@ -1217,7 +1217,7 @@ export default function MessagesPage() {
                     className="h-full w-full min-w-0 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6"
                     style={{
                       background:
-                        "radial-gradient(ellipse at top right, rgba(240,120,50,0.035), transparent 55%), #141517",
+                        "radial-gradient(ellipse at top right, rgba(57,120,255,0.035), transparent 55%), #141517",
                     }}
                   >
                   {loadingMessages ? (
@@ -1243,7 +1243,7 @@ export default function MessagesPage() {
                         <div
                           className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
                           style={{
-                            background: "rgba(240,120,50,0.1)",
+                            background: "rgba(57,120,255,0.1)",
                             color: C.orange,
                           }}
                         >
@@ -1333,7 +1333,7 @@ export default function MessagesPage() {
                                     background: mine
                                       ? C.orange
                                       : "#25272B",
-                                    color: mine ? "#17181A" : C.text,
+                                    color: mine ? "#101827" : C.text,
                                     border: mine
                                       ? "1px solid rgba(255,255,255,0.08)"
                                       : `1px solid ${C.border}`,
@@ -1344,7 +1344,7 @@ export default function MessagesPage() {
                                       ? "5px"
                                       : undefined,
                                     boxShadow: mine
-                                      ? "0 5px 20px rgba(240,120,50,0.09)"
+                                      ? "0 5px 20px rgba(57,120,255,0.09)"
                                       : "none",
                                   }}
                                 >
@@ -1415,7 +1415,7 @@ export default function MessagesPage() {
                                     style={{
                                       color: mine
                                         ? "rgba(0,0,0,0.58)"
-                                        : "#92949A",
+                                        : "#9AA8BD",
                                     }}
                                   >
                                     {formatTime(message.created_at)}
@@ -1467,7 +1467,7 @@ export default function MessagesPage() {
                       style={{
                         background: C.orange,
                         borderColor: "rgba(255,255,255,0.18)",
-                        color: "#17181A",
+                        color: "#101827",
                         boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
                       }}
                     >
@@ -1489,7 +1489,7 @@ export default function MessagesPage() {
                     <div
                       className="mb-4 flex items-center gap-3 rounded-xl border p-3"
                       style={{
-                        background: "#111214",
+                        background: "#0A0E18",
                         borderColor: C.border,
                       }}
                     >
@@ -1577,9 +1577,9 @@ export default function MessagesPage() {
                       maxLength={5000}
                       placeholder="Напиши сообщение..."
                       aria-label="Текст сообщения"
-                      className="min-w-0 flex-1 rounded-xl border px-4 py-3.5 text-sm outline-none transition placeholder:text-[#696B70] focus:border-[#F07832]"
+                      className="min-w-0 flex-1 rounded-xl border px-4 py-3.5 text-sm outline-none transition placeholder:text-[#696B70] focus:border-[#3978FF]"
                       style={{
-                        background: "#111214",
+                        background: "#0A0E18",
                         borderColor: C.border,
                         color: C.text,
                       }}
@@ -1594,7 +1594,7 @@ export default function MessagesPage() {
                       className="flex h-[48px] w-[52px] shrink-0 items-center justify-center rounded-xl text-xl font-black text-black transition hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
                       style={{
                         background: C.orange,
-                        boxShadow: "0 5px 20px rgba(240,120,50,0.15)",
+                        boxShadow: "0 5px 20px rgba(57,120,255,0.15)",
                       }}
                     >
                       {sending ? "..." : "➤"}
@@ -1618,7 +1618,7 @@ export default function MessagesPage() {
                   <div
                     className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl text-4xl"
                     style={{
-                      background: "rgba(240,120,50,0.1)",
+                      background: "rgba(57,120,255,0.1)",
                       color: C.orange,
                     }}
                   >
