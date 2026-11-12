@@ -243,6 +243,20 @@ export default function MessagesPage() {
     };
   }, []);
 
+  // Помечаем входящие сообщения выбранного друга как прочитанные
+  const markMessagesRead = useCallback(async () => {
+    if (!userId || !selectedFriendId) return;
+
+    const { error } = await supabase.rpc("mark_chat_messages_read", {
+      p_sender_id: selectedFriendId,
+    });
+
+    if (error) {
+      console.error("Не удалось отметить сообщения прочитанными:", error);
+      setNotice("Не удалось отметить сообщения прочитанными: " + error.message);
+    }
+  }, [userId, selectedFriendId]);
+
   // Загрузка сообщений
   const loadMessages = useCallback(async (silent = false) => {
     if (!userId || !selectedFriendId) {
@@ -266,6 +280,8 @@ export default function MessagesPage() {
         return;
       }
 
+      await markMessagesRead();
+
       const messagesWithUrls = await Promise.all(
         ((data || []) as ChatMessage[]).map(addSignedUrl)
       );
@@ -279,7 +295,7 @@ export default function MessagesPage() {
     } finally {
       if (!silent) setLoadingMessages(false);
     }
-  }, [userId, selectedFriendId, addSignedUrl]);
+  }, [userId, selectedFriendId, addSignedUrl, markMessagesRead]);
 
   // Инициализация страницы
   useEffect(() => {
@@ -406,6 +422,10 @@ export default function MessagesPage() {
 
           if (!belongsToChat) return;
 
+          if (newMessage.receiver_id === userId) {
+            void markMessagesRead();
+          }
+
           void (async () => {
             const messageWithUrl = await addSignedUrl(newMessage);
 
@@ -448,7 +468,7 @@ export default function MessagesPage() {
       if (fallbackTimer) clearInterval(fallbackTimer);
       void supabase.removeChannel(channel);
     };
-  }, [userId, selectedFriendId, addSignedUrl, loadMessages]);
+  }, [userId, selectedFriendId, addSignedUrl, loadMessages, markMessagesRead]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
