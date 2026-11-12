@@ -255,8 +255,26 @@ export default function MessagesPage() {
       setGroupName(""); setSelectedFriendIds([]); setShowCreateGroup(false);
       await loadGroups(userId); setSelectedFriendId(null); setSelectedGroupId(group.id); setGroupMessages([]);
     } catch (error) {
-      setNotice("Не удалось создать группу: " + (error instanceof Error ? error.message : "Неизвестная ошибка"));
-    } finally { setCreatingGroup(false); }
+      const dbError = error as {
+        message?: unknown;
+        details?: unknown;
+        hint?: unknown;
+        code?: unknown;
+      };
+      const errorParts = [
+        typeof dbError?.message === "string" ? dbError.message : null,
+        typeof dbError?.details === "string" ? dbError.details : null,
+        typeof dbError?.hint === "string" ? dbError.hint : null,
+        typeof dbError?.code === "string" ? `Код: ${dbError.code}` : null,
+      ].filter((part): part is string => Boolean(part));
+      const message =
+        errorParts.join(" · ") ||
+        (error instanceof Error ? error.message : "Не удалось получить подробности ошибки.");
+      console.error("Ошибка создания группы:", error);
+      setNotice("Не удалось создать группу: " + message);
+    } finally {
+      setCreatingGroup(false);
+    }
   }
 
   async function sendGroupMessage(event: FormEvent<HTMLFormElement>) {
