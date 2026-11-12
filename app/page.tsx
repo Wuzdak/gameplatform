@@ -141,26 +141,39 @@ export default function Home() {
     let active = true;
 
     async function loadUnreadMessages() {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("messages")
-        .select("id", { count: "exact", head: true })
+        .select("id")
         .eq("receiver_id", user.id)
         .eq("is_read", false);
 
-      if (active && !error) {
-        setUnreadMessages(count ?? 0);
+      if (!active) return;
+
+      if (error) {
+        console.error("VEXORA unread messages query failed:", error);
+        return;
       }
+
+      setUnreadMessages(data?.length ?? 0);
     }
 
-    void loadUnreadMessages();
-
-    const refreshTimer = setInterval(() => {
+    const refreshUnreadMessages = () => {
       void loadUnreadMessages();
-    }, 10000);
+    };
+
+    refreshUnreadMessages();
+
+    // Обновляем счётчик при возврате на вкладку и при открытии меню,
+    // а также периодически, чтобы не зависеть от Realtime.
+    const refreshTimer = setInterval(refreshUnreadMessages, 5000);
+    window.addEventListener("focus", refreshUnreadMessages);
+    document.addEventListener("visibilitychange", refreshUnreadMessages);
 
     return () => {
       active = false;
       clearInterval(refreshTimer);
+      window.removeEventListener("focus", refreshUnreadMessages);
+      document.removeEventListener("visibilitychange", refreshUnreadMessages);
     };
   }, [user]);
 
