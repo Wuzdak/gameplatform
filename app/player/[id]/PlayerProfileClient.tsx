@@ -25,7 +25,7 @@ const C = {
   bg: "#0A0E18",
   surface: "#121A2A",
   border: "#293650",
-  orange: "#3978FF",
+  orange: "#F07832",
   muted: "#9AA8BD",
 };
 
@@ -194,7 +194,7 @@ export default function PublicPlayerClient({ profileId }: { profileId: string })
             {profile.avatar_url?.startsWith("https://") ? (
               <img src={profile.avatar_url} alt="" className="h-24 w-24 rounded-2xl border object-cover" style={{ borderColor: C.border }} />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-black" style={{ background: "rgba(57,120,255,0.12)", color: C.orange }}>
+              <div className="flex h-24 w-24 items-center justify-center rounded-2xl text-4xl font-black" style={{ background: "rgba(240,120,50,0.12)", color: C.orange }}>
                 {profile.full_name.charAt(0).toUpperCase()}
               </div>
             )}
