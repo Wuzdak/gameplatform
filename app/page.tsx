@@ -553,6 +553,16 @@ export default function Home() {
           </Link>
 
           <Link
+            href="/messages"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition hover:bg-white/5"
+            style={{ color: C.text }}
+          >
+            <span className="w-5 text-center text-lg" style={{ color: C.orange }}>✉</span>
+            Личные сообщения
+          </Link>
+
+          <Link
             href="/profile"
             onClick={() => setMenuOpen(false)}
             className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition hover:bg-white/5"
