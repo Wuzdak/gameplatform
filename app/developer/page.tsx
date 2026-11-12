@@ -108,8 +108,8 @@ export default function DeveloperPage() {
   return (
     <main className="min-h-screen bg-[#0A0E18] px-5 py-12 text-white">
       <div className="mx-auto max-w-3xl">
-        <a href="/" className="text-2xl font-black">
-          Game<span className="text-blue-400">Platform</span>
+        <a href="/" className="text-2xl font-black tracking-tight">
+          VEX<span className="text-blue-400">ORA</span>
         </a>
 
         <div className="mt-10 rounded-3xl border border-white/10 bg-[#121A2A] p-8">
