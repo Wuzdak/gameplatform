@@ -84,8 +84,10 @@ export default function LibraryPage() {
 
           if (!mounted) return;
 
-          const launchUrls = new Map(
-            (catalogGames ?? []).map((game) => [game.title, game.launch_url])
+          const launchUrls = new Map<string, string | null>(
+            (catalogGames ?? []).map(
+              (game) => [game.title, game.launch_url] as [string, string | null]
+            )
           );
 
           setGames(
