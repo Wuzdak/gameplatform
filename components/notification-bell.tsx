@@ -304,9 +304,17 @@ export default function NotificationBell() {
             </div>
 
             <div
-              className="border-t px-4 py-3 text-center"
+              className="flex items-center justify-between border-t px-4 py-3"
               style={{ borderColor: "#303236" }}
             >
+              <Link
+                href="/notifications"
+                onClick={() => setOpen(false)}
+                className="text-xs font-bold transition hover:text-white"
+                style={{ color: "#F07832" }}
+              >
+                Все уведомления →
+              </Link>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
