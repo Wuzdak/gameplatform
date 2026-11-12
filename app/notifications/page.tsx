@@ -19,13 +19,13 @@ type Notification = {
 type Filter = "all" | "unread" | "read";
 
 const C = {
-  bg: "#111214",
-  surface: "#1B1D20",
-  surface2: "#242629",
-  border: "#303236",
-  orange: "#F07832",
-  text: "#E7E7E7",
-  muted: "#92949A",
+  bg: "#0A0E18",
+  surface: "#121A2A",
+  surface2: "#19243A",
+  border: "#293650",
+  orange: "#3978FF",
+  text: "#EDF3FF",
+  muted: "#9AA8BD",
 };
 
 function safeHref(href: string) {
@@ -272,7 +272,7 @@ export default function NotificationsPage() {
 
         {message && (
           <div className="mb-5 rounded-xl border px-4 py-3 text-sm"
-            style={{ borderColor: "rgba(240,120,50,0.3)", background: "rgba(240,120,50,0.08)", color: "#FFB98F" }}>
+            style={{ borderColor: "rgba(57,120,255,0.3)", background: "rgba(57,120,255,0.08)", color: "#B8CEFF" }}>
             {message}
           </div>
         )}
@@ -289,13 +289,13 @@ export default function NotificationsPage() {
           ) : (
             filteredItems.map((item) => (
               <article key={item.id} className="flex gap-3 border-b p-4 sm:gap-4 sm:p-5"
-                style={{ borderColor: C.border, background: item.is_read ? "transparent" : "rgba(240,120,50,0.055)" }}>
+                style={{ borderColor: C.border, background: item.is_read ? "transparent" : "rgba(57,120,255,0.055)" }}>
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl"
                   style={{ background: C.surface2, color: C.orange }}>{iconFor(item.type)}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-sm font-bold">{item.title}</h2>
-                    {!item.is_read && <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "rgba(240,120,50,0.15)", color: C.orange }}>НОВОЕ</span>}
+                    {!item.is_read && <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "rgba(57,120,255,0.15)", color: C.orange }}>НОВОЕ</span>}
                   </div>
                   <p className="mt-1 text-sm leading-6" style={{ color: "#B0B2B7" }}>{item.body}</p>
                   <p className="mt-2 text-[11px]" style={{ color: "#777A80" }}>{formatDate(item.created_at)}</p>
