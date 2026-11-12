@@ -11,6 +11,7 @@ type Game = {
   game_title: string;
   genre: string;
   image_url: string | null;
+  launch_url: string | null;
   acquired_at: string;
 };
 
@@ -716,6 +717,29 @@ export default function LibraryPage() {
                       <h3 className="truncate text-xl font-bold transition group-hover:text-orange-400">
                         {game.game_title}
                       </h3>
+
+                      {game.launch_url ? (
+                        <a
+                          href={game.launch_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:brightness-110"
+                          style={{ background: C.orange }}
+                        >
+                          <span>▶</span> Играть
+                          <span aria-hidden="true">↗</span>
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled
+                          title="Ссылка запуска ещё не добавлена администратором"
+                          className="mt-5 w-full cursor-not-allowed rounded-xl border px-4 py-3 text-sm font-bold"
+                          style={{ borderColor: C.border, color: C.muted }}
+                        >
+                          Скоро будет доступно
+                        </button>
+                      )}
 
                       <div
                         className="mt-5 flex items-center justify-between border-t pt-4"
