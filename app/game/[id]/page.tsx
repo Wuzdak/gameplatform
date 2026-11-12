@@ -265,6 +265,14 @@ function GamePageContent() {
       : 0;
 
   const roundedRating = Math.round(averageRating);
+  const ratingDistribution = [5, 4, 3, 2, 1].map((value) => {
+    const count = reviews.filter((review) => review.rating === value).length;
+    return {
+      value,
+      count,
+      percentage: reviews.length > 0 ? (count / reviews.length) * 100 : 0,
+    };
+  });
 
   return (
     <main className="min-h-screen bg-[#111214] text-[#E7E7E7]">
@@ -523,7 +531,7 @@ function GamePageContent() {
             </section>
 
             {/* REVIEWS */}
-            <section className="mt-16">
+            <section id="reviews" className="mt-16 scroll-mt-24">
               <div className="mb-6">
                 <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">
                   Сообщество
@@ -534,6 +542,45 @@ function GamePageContent() {
                     ({reviews.length})
                   </span>
                 </h2>
+              </div>
+
+              <div className="mb-8 grid gap-5 rounded-2xl border border-[#303236] bg-[#1B1D20] p-5 sm:grid-cols-[220px_1fr] sm:p-7">
+                <div className="flex flex-col justify-center border-b border-[#303236] pb-5 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-6">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#92949A]">
+                    Средняя оценка
+                  </p>
+                  <div className="mt-2 flex items-end gap-2">
+                    <span className="text-5xl font-black text-white">
+                      {reviews.length > 0 ? averageRating.toFixed(1) : "—"}
+                    </span>
+                    <span className="pb-1 text-sm text-[#92949A]">/ 5</span>
+                  </div>
+                  <div className="mt-2 text-lg tracking-wider text-[#F07832]">
+                    {"★".repeat(roundedRating)}{"☆".repeat(5 - roundedRating)}
+                  </div>
+                  <p className="mt-2 text-xs text-[#92949A]">
+                    На основе {reviews.length} {reviews.length % 10 === 1 && reviews.length % 100 !== 11 ? "отзыва" : reviews.length % 10 >= 2 && reviews.length % 10 <= 4 && (reviews.length % 100 < 12 || reviews.length % 100 > 14) ? "отзывов" : "отзывов"}
+                  </p>
+                </div>
+
+                <div className="flex flex-col justify-center gap-3">
+                  {ratingDistribution.map((item) => (
+                    <div key={item.value} className="flex items-center gap-3">
+                      <span className="w-8 shrink-0 text-sm font-semibold text-[#B8BAC0]">
+                        {item.value} ★
+                      </span>
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#303236]">
+                        <div
+                          className="h-full rounded-full bg-[#F07832] transition-all duration-500"
+                          style={{ width: `${item.percentage}%` }}
+                        />
+                      </div>
+                      <span className="w-8 shrink-0 text-right text-xs tabular-nums text-[#92949A]">
+                        {item.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <form
