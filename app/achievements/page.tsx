@@ -27,12 +27,12 @@ type EarnedAchievement = {
 };
 
 const C = {
-  bg: "#111214",
-  surface: "#1B1D20",
-  surface2: "#242629",
-  border: "#303236",
-  orange: "#F07832",
-  muted: "#92949A",
+  bg: "#0A0E18",
+  surface: "#121A2A",
+  surface2: "#19243A",
+  border: "#293650",
+  orange: "#3978FF",
+  muted: "#9AA8BD",
 };
 
 function formatDate(value: string) {
@@ -186,7 +186,7 @@ export default function AchievementsPage() {
                   <span className="text-lg font-bold">Уровень игрока</span>
                 </div>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl text-3xl" style={{ background: "rgba(240,120,50,0.12)" }}>⭐</div>
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl text-3xl" style={{ background: "rgba(57,120,255,0.12)" }}>⭐</div>
             </div>
             <div className="mt-7 flex items-center justify-between text-sm">
               <span className="font-bold">{xp} XP</span>
@@ -233,15 +233,15 @@ export default function AchievementsPage() {
               const unlocked = Boolean(earnedAt);
               return (
                 <article key={item.id} className="flex gap-4 rounded-2xl border p-5"
-                  style={{ background: C.surface, borderColor: unlocked ? "rgba(240,120,50,0.45)" : C.border, opacity: unlocked ? 1 : 0.68 }}>
+                  style={{ background: C.surface, borderColor: unlocked ? "rgba(57,120,255,0.45)" : C.border, opacity: unlocked ? 1 : 0.68 }}>
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl"
-                    style={{ background: unlocked ? "rgba(240,120,50,0.14)" : C.surface2, filter: unlocked ? "none" : "grayscale(1)" }}>
+                    style={{ background: unlocked ? "rgba(57,120,255,0.14)" : C.surface2, filter: unlocked ? "none" : "grayscale(1)" }}>
                     {item.icon}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-bold">{item.title}</h3>
-                      {unlocked && <span className="rounded-full px-2 py-0.5 text-[9px] font-black" style={{ background: "rgba(240,120,50,0.15)", color: C.orange }}>ОТКРЫТО</span>}
+                      {unlocked && <span className="rounded-full px-2 py-0.5 text-[9px] font-black" style={{ background: "rgba(57,120,255,0.15)", color: C.orange }}>ОТКРЫТО</span>}
                     </div>
                     <p className="mt-1 text-sm leading-5" style={{ color: C.muted }}>{item.description}</p>
                     <p className="mt-3 text-[11px] font-semibold" style={{ color: unlocked ? C.orange : "#777A80" }}>
