@@ -7,6 +7,20 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import NotificationBell from "../components/notification-bell";
 
+type PlayerProgress = {
+  xp: number;
+  level: number;
+};
+
+type RecentAchievement = {
+  achievement_id: string;
+  earned_at: string;
+  achievement: {
+    title: string;
+    icon: string;
+  } | null;
+};
+
 type Game = {
   id: string;
   title: string;
@@ -72,6 +86,8 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [playerProgress, setPlayerProgress] = useState<PlayerProgress | null>(null);
+  const [recentAchievements, setRecentAchievements] = useState<RecentAchievement[]>([]);
 
   useEffect(() => {
     async function loadGames() {
@@ -114,6 +130,43 @@ export default function Home() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPlayerProgress() {
+      if (!user) {
+        setPlayerProgress(null);
+        setRecentAchievements([]);
+        return;
+      }
+
+      const [statsResult, earnedResult] = await Promise.all([
+        supabase
+          .from("player_stats")
+          .select("xp, level")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("user_achievements")
+          .select("achievement_id, earned_at, achievement:achievements(title, icon)")
+          .eq("user_id", user.id)
+          .order("earned_at", { ascending: false })
+          .limit(3),
+      ]);
+
+      if (!active) return;
+      setPlayerProgress((statsResult.data as PlayerProgress | null) ?? { xp: 0, level: 1 });
+      if (!earnedResult.error) {
+        setRecentAchievements((earnedResult.data ?? []) as unknown as RecentAchievement[]);
+      }
+    }
+
+    void loadPlayerProgress();
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -508,6 +561,15 @@ export default function Home() {
             <span className="w-5 text-center text-lg" style={{ color: C.orange }}>♙</span>
             Профиль
           </Link>
+          <Link
+            href="/achievements"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition hover:bg-white/5"
+            style={{ color: C.text }}
+          >
+            <span className="w-5 text-center text-lg" style={{ color: C.orange }}>🏆</span>
+            Достижения
+          </Link>
         </nav>
 
         <div className="border-t p-5" style={{ borderColor: C.border }}>
@@ -713,6 +775,62 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* PLAYER ACHIEVEMENTS */}
+      {user && (
+        <section className="mx-auto max-w-7xl px-5 pt-8 lg:px-8">
+          <div
+            className="relative overflow-hidden rounded-3xl border p-6 sm:p-8"
+            style={{
+              background: "linear-gradient(115deg, rgba(240,120,50,0.13), rgba(27,29,32,0.98) 55%)",
+              borderColor: "rgba(240,120,50,0.28)",
+            }}
+          >
+            <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full blur-3xl" style={{ background: "rgba(240,120,50,0.12)" }} />
+            <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black uppercase tracking-[0.22em]" style={{ color: C.orange }}>VEXORA PLAYER CLUB</p>
+                <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
+                  <h2 className="text-2xl font-black sm:text-3xl">Твой игровой прогресс</h2>
+                  <span className="rounded-full px-3 py-1 text-xs font-black" style={{ color: C.orange, background: "rgba(240,120,50,0.13)" }}>
+                    УРОВЕНЬ {playerProgress?.level ?? 1}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm" style={{ color: C.muted }}>Зарабатывай опыт за активность на VEXORA и собирай уникальные достижения.</p>
+                <div className="mt-5 max-w-xl">
+                  <div className="mb-2 flex items-center justify-between text-xs font-bold">
+                    <span>{playerProgress?.xp ?? 0} XP всего</span>
+                    <span style={{ color: C.muted }}>{(playerProgress?.xp ?? 0) % 100}/100 XP до следующего уровня</span>
+                  </div>
+                  <div className="h-2.5 overflow-hidden rounded-full" style={{ background: C.surface2 }}>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${(playerProgress?.xp ?? 0) % 100}%`, background: C.orange }} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex w-full flex-col gap-3 lg:w-72">
+                <div className="rounded-2xl border p-4" style={{ borderColor: C.border, background: "rgba(17,18,20,0.55)" }}>
+                  <p className="text-xs font-bold" style={{ color: C.muted }}>Последние достижения</p>
+                  {recentAchievements.length ? (
+                    <div className="mt-3 space-y-3">
+                      {recentAchievements.map((item) => (
+                        <div key={item.achievement_id} className="flex items-center gap-3 text-sm">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "rgba(240,120,50,0.12)" }}>{item.achievement?.icon ?? "🏆"}</span>
+                          <span className="truncate font-semibold">{item.achievement?.title ?? "Достижение открыто"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm" style={{ color: C.muted }}>Пока нет открытых наград. Всё впереди!</p>
+                  )}
+                </div>
+                <Link href="/achievements" className="rounded-xl px-5 py-3 text-center text-sm font-black text-black transition hover:brightness-110" style={{ background: C.orange }}>
+                  Смотреть достижения →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* BENEFITS */}
       <section className="mx-auto grid max-w-7xl gap-4 px-5 pb-16 sm:grid-cols-3 lg:px-8">
