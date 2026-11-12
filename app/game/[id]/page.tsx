@@ -15,6 +15,10 @@ type Game = {
   screenshots: string[] | null;
   system_requirements: string | null;
   launch_url: string | null;
+  developer: string | null;
+  publisher: string | null;
+  release_date: string | null;
+  trailer_url: string | null;
 };
 
 type Review = {
@@ -30,6 +34,36 @@ function formatPrice(price: number) {
   return Number(price) === 0
     ? "Бесплатно"
     : `${Number(price).toLocaleString("ru-RU")} ₽`;
+}
+
+function getTrailerEmbedUrl(value: string | null) {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    const host = url.hostname.replace(/^www\\./, "").toLowerCase();
+
+    if (host === "youtu.be") {
+      const id = url.pathname.split("/").filter(Boolean)[0];
+      return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
+    }
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const id = url.searchParams.get("v");
+      if (id) return `https://www.youtube-nocookie.com/embed/${id}`;
+      const match = url.pathname.match(/^\\/(?:embed|shorts)\\/([^/]+)/);
+      return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : null;
+    }
+
+    if (host === "vimeo.com" || host === "player.vimeo.com") {
+      const id = url.pathname.split("/").filter(Boolean).pop();
+      return id && /^\\d+$/.test(id) ? `https://player.vimeo.com/video/${id}` : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }
 
 function GamePageContent() {
@@ -77,7 +111,7 @@ function GamePageContent() {
       const { data: gameData, error: gameError } = await supabase
         .from("games")
         .select(
-          "id, title, description, genre, price, image_url, screenshots, system_requirements, launch_url"
+          "id, title, description, genre, price, image_url, screenshots, system_requirements, launch_url, developer, publisher, release_date, trailer_url"
         )
         .eq("id", gameId)
         .eq("is_published", true)
@@ -267,6 +301,7 @@ function GamePageContent() {
       : 0;
 
   const roundedRating = Math.round(averageRating);
+  const trailerEmbedUrl = getTrailerEmbedUrl(game?.trailer_url ?? null);
   const ratingDistribution = [5, 4, 3, 2, 1].map((value) => {
     const count = reviews.filter((review) => review.rating === value).length;
     return {
@@ -465,6 +500,50 @@ function GamePageContent() {
                 </div>
               </div>
             </section>
+
+            {/* GAME DETAILS */}
+            {(game.developer || game.publisher || game.release_date) && (
+              <section className="mt-12">
+                <div className="mb-5">
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">Карточка игры</p>
+                  <h2 className="mt-2 text-2xl font-black">Подробнее об игре</h2>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {[
+                    { label: "Разработчик", value: game.developer },
+                    { label: "Издатель", value: game.publisher },
+                    { label: "Дата выхода", value: game.release_date ? new Date(`${game.release_date}T00:00:00`).toLocaleDateString("ru-RU") : null },
+                  ].filter((item) => item.value).map((item) => (
+                    <div key={item.label} className="rounded-xl border border-[#303236] bg-[#1B1D20] p-5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[#92949A]">{item.label}</p>
+                      <p className="mt-2 text-base font-bold text-white">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* TRAILER */}
+            {trailerEmbedUrl && (
+              <section className="mt-16">
+                <div className="mb-6">
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#F07832]">Видео</p>
+                  <h2 className="mt-2 text-2xl font-black">Трейлер игры</h2>
+                </div>
+                <div className="overflow-hidden rounded-2xl border border-[#303236] bg-black shadow-xl shadow-black/20">
+                  <div className="aspect-video">
+                    <iframe
+                      src={trailerEmbedUrl}
+                      title={`Трейлер игры ${game.title}`}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
 
             {/* SCREENSHOTS */}
             {game.screenshots && game.screenshots.length > 0 && (
