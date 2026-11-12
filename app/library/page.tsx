@@ -151,14 +151,21 @@ export default function LibraryPage() {
     setDeletingGameId(game.id);
     setMessage("");
 
-    const { error } = await supabase
+    const { data: deletedRows, error } = await supabase
       .from("user_library")
       .delete()
       .eq("id", game.id)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select("id");
 
     if (error) {
       setMessage("Не удалось удалить игру: " + error.message);
+    } else if (!deletedRows || deletedRows.length === 0) {
+      // Supabase can return no error when RLS hides the row from DELETE.
+      // Do not remove the card from local state unless the database confirms it.
+      setMessage(
+        "Игра не была удалена из базы данных. Проверьте RLS-политику DELETE для таблицы user_library в Supabase."
+      );
     } else {
       setGames((previous) => previous.filter((item) => item.id !== game.id));
     }
