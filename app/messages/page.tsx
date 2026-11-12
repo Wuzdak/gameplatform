@@ -46,7 +46,7 @@ const C = {
   surface: "#121A2A",
   surface2: "#19243A",
   border: "#293650",
-  orange: "#3978FF",
+  orange: "#F07832",
   text: "#EDF3FF",
   muted: "#9AA8BD",
 };
@@ -173,7 +173,7 @@ function Logo() {
       <div
         className="flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-white"
         style={{
-          background: "linear-gradient(135deg, #3978FF 0%, #83B2FF 100%)",
+          background: "linear-gradient(135deg, #F07832 0%, #FF9A54 100%)",
           boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
         }}
       >
@@ -1577,7 +1577,7 @@ export default function MessagesPage() {
                       maxLength={5000}
                       placeholder="Напиши сообщение..."
                       aria-label="Текст сообщения"
-                      className="min-w-0 flex-1 rounded-xl border px-4 py-3.5 text-sm outline-none transition placeholder:text-[#696B70] focus:border-[#3978FF]"
+                      className="min-w-0 flex-1 rounded-xl border px-4 py-3.5 text-sm outline-none transition placeholder:text-[#696B70] focus:border-[#F07832]"
                       style={{
                         background: "#0A0E18",
                         borderColor: C.border,
