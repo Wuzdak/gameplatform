@@ -858,7 +858,7 @@ export default function MessagesPage() {
 
         {/* CHAT */}
         <div
-          className="grid items-start rounded-2xl border shadow-2xl md:grid-cols-[290px_1fr]"
+          className="grid w-full min-w-0 grid-cols-1 items-stretch rounded-2xl border shadow-2xl md:grid-cols-[290px_minmax(0,1fr)]"
           style={{
             background: C.surface,
             borderColor: C.border,
@@ -867,7 +867,7 @@ export default function MessagesPage() {
         >
           {/* FRIENDS SIDEBAR */}
           <aside
-            className="flex flex-col border-b md:border-b-0 md:border-r"
+            className="flex min-w-0 flex-col border-b md:border-b-0 md:border-r"
             style={{
               background: "#17181A",
               borderColor: C.border,
@@ -1035,7 +1035,7 @@ export default function MessagesPage() {
           </aside>
 
           {/* CHAT AREA */}
-          <section className="flex h-[680px] min-w-0 flex-col">
+          <section className="flex h-[680px] w-full min-w-0 flex-col">
             {selectedFriend ? (
               <>
                 {/* CHAT HEADER */}
@@ -1099,11 +1099,11 @@ export default function MessagesPage() {
                 </div>
 
                 {/* MESSAGES */}
-                <div className="relative flex min-h-0 flex-1">
+                <div className="relative flex min-h-0 w-full min-w-0 flex-1">
                   <div
                     ref={messagesScrollRef}
                     onScroll={handleMessagesScroll}
-                    className="h-full space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6"
+                    className="h-full w-full min-w-0 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6"
                     style={{
                       background:
                         "radial-gradient(ellipse at top right, rgba(240,120,50,0.035), transparent 55%), #141517",
