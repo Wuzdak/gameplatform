@@ -79,22 +79,31 @@ export default function LibraryPage() {
         if (gameTitles.length > 0) {
           const { data: catalogGames } = await supabase
             .from("games")
-            .select("title, launch_url")
+            .select("title, image_url, launch_url")
             .in("title", gameTitles);
 
           if (!mounted) return;
 
-          const launchUrls = new Map<string, string | null>(
-            (catalogGames ?? []).map(
-              (game) => [game.title, game.launch_url] as [string, string | null]
-            )
+          const catalogByTitle = new Map<
+            string,
+            { image_url: string | null; launch_url: string | null }
+          >(
+            (catalogGames ?? []).map((game) => [
+              game.title,
+              { image_url: game.image_url, launch_url: game.launch_url },
+            ])
           );
 
           setGames(
-            libraryGames.map((game) => ({
-              ...game,
-              launch_url: game.launch_url || launchUrls.get(game.game_title) || null,
-            }))
+            libraryGames.map((game) => {
+              const catalogGame = catalogByTitle.get(game.game_title);
+
+              return {
+                ...game,
+                image_url: game.image_url || catalogGame?.image_url || null,
+                launch_url: game.launch_url || catalogGame?.launch_url || null,
+              };
+            })
           );
         } else {
           setGames(libraryGames);
@@ -742,19 +751,27 @@ export default function LibraryPage() {
                     <div
                       className="relative h-52 overflow-hidden"
                       style={{
-                        background: game.image_url
-                          ? `url("${game.image_url}") center/cover`
-                          : "linear-gradient(135deg,#39302A,#1B1D20)",
+                        background: "linear-gradient(135deg,#39302A,#1B1D20)",
                       }}
                     >
-                      {!game.image_url && (
-                        <div
-                          className="flex h-full items-center justify-center text-6xl font-black"
-                          style={{ color: C.orange }}
-                        >
-                          V
-                        </div>
+                      {game.image_url && (
+                        <img
+                          src={game.image_url}
+                          alt={`Обложка игры ${game.game_title}`}
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full object-cover"
+                          onError={(event) => {
+                            event.currentTarget.style.display = "none";
+                          }}
+                        />
                       )}
+                      <div
+                        className="flex h-full items-center justify-center text-6xl font-black"
+                        style={{ color: C.orange }}
+                        aria-hidden="true"
+                      >
+                        V
+                      </div>
 
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
