@@ -14,6 +14,7 @@ type Game = {
   image_url: string | null;
   screenshots: string[] | null;
   system_requirements: string | null;
+  launch_url: string | null;
 };
 
 type Review = {
@@ -76,7 +77,7 @@ function GamePageContent() {
       const { data: gameData, error: gameError } = await supabase
         .from("games")
         .select(
-          "id, title, description, genre, price, image_url, screenshots, system_requirements"
+          "id, title, description, genre, price, image_url, screenshots, system_requirements, launch_url"
         )
         .eq("id", gameId)
         .eq("is_published", true)
@@ -191,6 +192,7 @@ function GamePageContent() {
         game_title: game.title,
         genre: game.genre,
         image_url: game.image_url,
+        launch_url: game.launch_url,
       });
 
       if (error) {
