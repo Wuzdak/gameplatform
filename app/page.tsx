@@ -34,13 +34,13 @@ type Game = {
 };
 
 const C = {
-  bg: "#111214",
-  surface: "#1B1D20",
-  surface2: "#242629",
-  border: "#303236",
-  orange: "#F07832",
-  text: "#E7E7E7",
-  muted: "#92949A",
+  bg: "#0A0E18",
+  surface: "#121A2A",
+  surface2: "#19243A",
+  border: "#293650",
+  orange: "#3978FF",
+  text: "#EDF3FF",
+  muted: "#9AA8BD",
 };
 
 const money = (price: number) =>
@@ -54,12 +54,12 @@ function Logo({ size = "normal" }: { size?: "normal" | "large" }) {
   return (
     <Link href="/" className="flex shrink-0 items-center gap-2.5">
       <div
-        className={`flex items-center justify-center rounded-xl font-black text-black ${
+        className={`flex items-center justify-center rounded-xl font-black text-white ${
           large ? "h-12 w-12 text-2xl" : "h-9 w-9 text-xl"
         }`}
         style={{
-          background: C.orange,
-          boxShadow: "0 5px 25px rgba(240,120,50,0.22)",
+          background: "linear-gradient(135deg, #3978FF 0%, #8257E5 100%)",
+          boxShadow: "0 5px 25px rgba(57,120,255,0.22)",
         }}
       >
         V
@@ -381,7 +381,7 @@ export default function Home() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") goToCatalog();
                 }}
-                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-orange-500"
+                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-blue-500"
                 style={{
                   background: C.surface,
                   borderColor: C.border,
@@ -508,7 +508,7 @@ export default function Home() {
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{
-          background: "#17181A",
+          background: "#101827",
           borderColor: C.border,
         }}
       >
@@ -681,7 +681,7 @@ export default function Home() {
       <section id="store" className="relative overflow-hidden">
         <div
           className="pointer-events-none absolute -right-40 -top-32 h-[550px] w-[550px] rounded-full blur-[140px]"
-          style={{ background: "rgba(240,120,50,0.10)" }}
+          style={{ background: "rgba(57,120,255,0.10)" }}
         />
 
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-20 lg:grid-cols-2 lg:px-8 lg:py-28">
@@ -689,8 +689,8 @@ export default function Home() {
             <div
               className="mb-7 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-widest"
               style={{
-                background: "rgba(240,120,50,0.08)",
-                borderColor: "rgba(240,120,50,0.25)",
+                background: "rgba(57,120,255,0.08)",
+                borderColor: "rgba(57,120,255,0.25)",
                 color: C.orange,
               }}
             >
@@ -720,7 +720,7 @@ export default function Home() {
                 className="rounded-xl px-7 py-4 text-sm font-black text-black transition hover:-translate-y-1 hover:brightness-110"
                 style={{
                   background: C.orange,
-                  boxShadow: "0 10px 35px rgba(240,120,50,0.18)",
+                  boxShadow: "0 10px 35px rgba(57,120,255,0.18)",
                 }}
               >
                 Исследовать каталог →
@@ -766,7 +766,7 @@ export default function Home() {
           <div className="relative mx-auto w-full max-w-xl">
             <div
               className="absolute inset-8 rounded-full blur-[90px]"
-              style={{ background: "rgba(240,120,50,0.16)" }}
+              style={{ background: "rgba(57,120,255,0.16)" }}
             />
 
             <div
@@ -774,7 +774,7 @@ export default function Home() {
               style={{
                 borderColor: "#38332F",
                 background:
-                  "radial-gradient(ellipse at 65% 35%, #63402C 0%, #30251F 35%, #19191A 75%, #111214 100%)",
+                  "radial-gradient(ellipse at 65% 35%, #63402C 0%, #30251F 35%, #19191A 75%, #0A0E18 100%)",
                 boxShadow: "0 30px 100px rgba(0,0,0,0.45)",
               }}
             >
@@ -782,19 +782,19 @@ export default function Home() {
                 className="absolute inset-0 opacity-30"
                 style={{
                   backgroundImage:
-                    "linear-gradient(135deg, transparent 45%, rgba(240,120,50,0.15) 45.2%, transparent 45.5%)",
+                    "linear-gradient(135deg, transparent 45%, rgba(57,120,255,0.15) 45.2%, transparent 45.5%)",
                   backgroundSize: "45px 45px",
                 }}
               />
 
               <div
                 className="absolute -right-10 -top-10 h-64 w-64 rounded-full border"
-                style={{ borderColor: "rgba(240,120,50,0.25)" }}
+                style={{ borderColor: "rgba(57,120,255,0.25)" }}
               />
 
               <div
                 className="absolute -right-1 -top-1 h-48 w-48 rounded-full border"
-                style={{ borderColor: "rgba(240,120,50,0.2)" }}
+                style={{ borderColor: "rgba(57,120,255,0.2)" }}
               />
 
               <div
@@ -807,9 +807,9 @@ export default function Home() {
                   className="mx-auto flex h-28 w-28 items-center justify-center rounded-3xl border text-6xl font-black sm:h-36 sm:w-36 sm:text-7xl"
                   style={{
                     color: C.orange,
-                    borderColor: "rgba(240,120,50,0.35)",
+                    borderColor: "rgba(57,120,255,0.35)",
                     background: "rgba(17,18,20,0.65)",
-                    boxShadow: "0 0 65px rgba(240,120,50,0.18)",
+                    boxShadow: "0 0 65px rgba(57,120,255,0.18)",
                   }}
                 >
                   V
@@ -850,17 +850,17 @@ export default function Home() {
           <div
             className="relative overflow-hidden rounded-3xl border p-6 sm:p-8"
             style={{
-              background: "linear-gradient(115deg, rgba(240,120,50,0.13), rgba(27,29,32,0.98) 55%)",
-              borderColor: "rgba(240,120,50,0.28)",
+              background: "linear-gradient(115deg, rgba(57,120,255,0.13), rgba(27,29,32,0.98) 55%)",
+              borderColor: "rgba(57,120,255,0.28)",
             }}
           >
-            <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full blur-3xl" style={{ background: "rgba(240,120,50,0.12)" }} />
+            <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full blur-3xl" style={{ background: "rgba(57,120,255,0.12)" }} />
             <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-black uppercase tracking-[0.22em]" style={{ color: C.orange }}>VEXORA PLAYER CLUB</p>
                 <div className="mt-2 flex flex-wrap items-end gap-x-3 gap-y-1">
                   <h2 className="text-2xl font-black sm:text-3xl">Твой игровой прогресс</h2>
-                  <span className="rounded-full px-3 py-1 text-xs font-black" style={{ color: C.orange, background: "rgba(240,120,50,0.13)" }}>
+                  <span className="rounded-full px-3 py-1 text-xs font-black" style={{ color: C.orange, background: "rgba(57,120,255,0.13)" }}>
                     УРОВЕНЬ {playerProgress?.level ?? 1}
                   </span>
                 </div>
@@ -882,7 +882,7 @@ export default function Home() {
                     <div className="mt-3 space-y-3">
                       {recentAchievements.map((item) => (
                         <div key={item.achievement_id} className="flex items-center gap-3 text-sm">
-                          <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "rgba(240,120,50,0.12)" }}>{item.achievement?.icon ?? "🏆"}</span>
+                          <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "rgba(57,120,255,0.12)" }}>{item.achievement?.icon ?? "🏆"}</span>
                           <span className="truncate font-semibold">{item.achievement?.title ?? "Достижение открыто"}</span>
                         </div>
                       ))}
@@ -1014,7 +1014,7 @@ export default function Home() {
                   role="link"
                   tabIndex={0}
                   aria-label={`Открыть страницу игры ${game.title}`}
-                  className="group cursor-pointer overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="group cursor-pointer overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   style={{
                     background: C.surface,
                     borderColor: C.border,
@@ -1025,7 +1025,7 @@ export default function Home() {
                     style={{
                       background: game.image_url
                         ? `url("${game.image_url}") center/cover`
-                        : "linear-gradient(135deg,#39302A,#1B1D20)",
+                        : "linear-gradient(135deg,#1B2A45,#121A2A)",
                     }}
                   >
                     {!game.image_url && (
@@ -1052,14 +1052,14 @@ export default function Home() {
 
                     <span
                       className="absolute bottom-4 left-4 text-xs font-bold"
-                      style={{ color: "#FFD0AE" }}
+                      style={{ color: "#C9D8FF" }}
                     >
                       {game.genre}
                     </span>
                   </div>
 
                   <div className="p-5">
-                    <h3 className="text-lg font-bold transition group-hover:text-orange-400">
+                    <h3 className="text-lg font-bold transition group-hover:text-blue-400">
                       {game.title}
                     </h3>
 
@@ -1096,8 +1096,8 @@ export default function Home() {
                       <p
                         className="mt-3 rounded-lg p-3 text-xs"
                         style={{
-                          background: "rgba(240,120,50,0.08)",
-                          color: "#FFB98F",
+                          background: "rgba(57,120,255,0.08)",
+                          color: "#B8CEFF",
                         }}
                       >
                         {messages[game.id]}
@@ -1152,8 +1152,8 @@ export default function Home() {
           className="relative overflow-hidden rounded-3xl border p-8 sm:p-12 lg:p-16"
           style={{
             background:
-              "radial-gradient(ellipse at 90% 20%, rgba(240,120,50,0.20), transparent 45%), #1B1D20",
-            borderColor: "rgba(240,120,50,0.25)",
+              "radial-gradient(ellipse at 90% 20%, rgba(57,120,255,0.20), transparent 45%), #121A2A",
+            borderColor: "rgba(57,120,255,0.25)",
           }}
         >
           <div className="absolute -right-10 -top-20 text-[250px] font-black leading-none opacity-[0.04]">
@@ -1197,7 +1197,7 @@ export default function Home() {
       <footer
         className="mt-10 border-t"
         style={{
-          background: "#0D0E10",
+          background: "#080C14",
           borderColor: C.border,
         }}
       >
