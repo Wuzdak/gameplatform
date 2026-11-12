@@ -154,25 +154,13 @@ export default function Home() {
 
     void loadUnreadMessages();
 
-    const channel = supabase
-      .channel(`home-unread-messages-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "messages",
-          filter: `receiver_id=eq.${user.id}`,
-        },
-        () => {
-          void loadUnreadMessages();
-        }
-      )
-      .subscribe();
+    const refreshTimer = setInterval(() => {
+      void loadUnreadMessages();
+    }, 10000);
 
     return () => {
       active = false;
-      void supabase.removeChannel(channel);
+      clearInterval(refreshTimer);
     };
   }, [user]);
 
