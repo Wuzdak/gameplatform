@@ -40,6 +40,7 @@ type Game = {
   image_url: string | null;
   screenshots: string[] | null;
   system_requirements: string | null;
+  launch_url: string | null;
   is_published: boolean;
   created_at: string;
 };
@@ -52,6 +53,7 @@ type GameForm = {
   image_url: string;
   screenshots: string;
   system_requirements: string;
+  launch_url: string;
   is_published: boolean;
 };
 
@@ -63,6 +65,7 @@ const emptyGame: GameForm = {
   image_url: "",
   screenshots: "",
   system_requirements: "",
+  launch_url: "",
   is_published: false,
 };
 
@@ -79,6 +82,15 @@ function isValidImageUrl(value: string) {
   try {
     const url = new URL(value);
     return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function isValidLaunchUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:";
   } catch {
     return false;
   }
@@ -544,6 +556,7 @@ export default function AdminPage() {
       image_url: game.image_url || "",
       screenshots: (game.screenshots || []).join("\n"),
       system_requirements: game.system_requirements || "",
+      launch_url: game.launch_url || "",
       is_published: game.is_published,
     });
 
@@ -584,6 +597,14 @@ export default function AdminPage() {
       return;
     }
 
+    if (
+      gameForm.launch_url.trim() &&
+      !isValidLaunchUrl(gameForm.launch_url.trim())
+    ) {
+      setMessage("Ссылка запуска должна начинаться с https://.");
+      return;
+    }
+
     const screenshots = gameForm.screenshots
       .split("\n")
       .map((url) => url.trim())
@@ -610,6 +631,7 @@ export default function AdminPage() {
       image_url: gameForm.image_url.trim() || null,
       screenshots,
       system_requirements: gameForm.system_requirements.trim(),
+      launch_url: gameForm.launch_url.trim() || null,
       is_published: gameForm.is_published,
     };
 
@@ -1117,6 +1139,24 @@ export default function AdminPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Ссылка для запуска */}
+
+              <div className="md:col-span-2 rounded-xl border border-[#F07832]/20 bg-[#F07832]/5 p-4">
+                <label className="mb-2 block text-sm font-semibold text-[#F07832]">
+                  Ссылка для запуска игры
+                </label>
+                <p className="mb-3 text-xs text-[#92949A]">
+                  Укажи HTTPS-ссылку на браузерную версию игры или её официальную страницу. Поле можно оставить пустым.
+                </p>
+                <input
+                  type="url"
+                  value={gameForm.launch_url}
+                  onChange={(e) => updateGameForm("launch_url", e.target.value)}
+                  placeholder="https://example.com/play"
+                  className={inputClass}
+                />
               </div>
 
               {/* Системные требования */}
