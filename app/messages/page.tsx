@@ -456,11 +456,14 @@ export default function MessagesPage() {
           stopFallback();
         } else if (
           status === "CHANNEL_ERROR" ||
-          status === "TIMED_OUT" ||
-          status === "CLOSED"
+          status === "TIMED_OUT"
         ) {
           console.warn("VEXORA chat Realtime status:", status);
           startFallback();
+        } else if (status === "CLOSED") {
+          // CLOSED также приходит при штатном удалении канала в cleanup.
+          // Не запускаем fallback для нормального закрытия подписки.
+          console.info("VEXORA chat Realtime channel closed.");
         }
       });
 
