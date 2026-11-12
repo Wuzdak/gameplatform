@@ -97,7 +97,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
           compact ? "h-9 w-9 text-lg" : "h-10 w-10 text-xl"
         }`}
         style={{
-          background: "linear-gradient(135deg, #3978FF 0%, #8257E5 100%)",
+          background: "linear-gradient(135deg, #3978FF 0%, #83B2FF 100%)",
           boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
         }}
       >
@@ -1048,7 +1048,7 @@ export default function ProfilePage() {
           <section
             className="mt-8 rounded-2xl border p-6 sm:p-8"
             style={{
-              background: "linear-gradient(110deg, #1B2540, #121A2A)",
+              background: "linear-gradient(110deg, #252F3D, #121A2A)",
               borderColor: "rgba(57,120,255,0.3)",
             }}
           >
