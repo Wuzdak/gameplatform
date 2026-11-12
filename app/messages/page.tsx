@@ -507,16 +507,25 @@ export default function MessagesPage() {
   }, [messages, loadingMessages, selectedFriendId]);
 
   function handleMessagesScroll() {
-    const element = messagesScrollRef.current;
-    if (!element) return;
+    const bottom = bottomRef.current;
+    if (!bottom) return;
 
-    const distanceFromBottom =
-      element.scrollHeight - element.scrollTop - element.clientHeight;
+    const distanceFromBottom = bottom.getBoundingClientRect().bottom - window.innerHeight;
     const atBottom = distanceFromBottom <= 100;
 
     wasAtBottomRef.current = atBottom;
     setShowScrollToBottom(!atBottom && messages.length > 0);
   }
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleMessagesScroll, { passive: true });
+    window.addEventListener("resize", handleMessagesScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleMessagesScroll);
+      window.removeEventListener("resize", handleMessagesScroll);
+    };
+  }, [messages.length]);
 
   function scrollToLatestMessages() {
     wasAtBottomRef.current = true;
@@ -843,7 +852,7 @@ export default function MessagesPage() {
 
         {/* CHAT */}
         <div
-          className="grid min-h-[680px] overflow-hidden rounded-2xl border shadow-2xl md:h-[680px] md:min-h-0 md:grid-cols-[290px_1fr]"
+          className="grid items-start rounded-2xl border shadow-2xl md:grid-cols-[290px_1fr]"
           style={{
             background: C.surface,
             borderColor: C.border,
@@ -852,7 +861,7 @@ export default function MessagesPage() {
         >
           {/* FRIENDS SIDEBAR */}
           <aside
-            className="flex min-h-0 flex-col overflow-hidden border-b md:border-b-0 md:border-r"
+            className="flex flex-col border-b md:border-b-0 md:border-r"
             style={{
               background: "#17181A",
               borderColor: C.border,
@@ -910,7 +919,7 @@ export default function MessagesPage() {
                 </Link>
               </div>
             ) : (
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <div className="flex-1">
                 {friends.map((friend) => {
                   const presence = getPresence(friend);
                   const selected =
@@ -1020,7 +1029,7 @@ export default function MessagesPage() {
           </aside>
 
           {/* CHAT AREA */}
-          <section className="flex min-h-[580px] min-w-0 flex-col md:h-full md:min-h-0 md:overflow-hidden">
+          <section className="flex min-w-0 flex-col">
             {selectedFriend ? (
               <>
                 {/* CHAT HEADER */}
@@ -1084,11 +1093,11 @@ export default function MessagesPage() {
                 </div>
 
                 {/* MESSAGES */}
-                <div className="relative min-h-0 flex-1">
+                <div className="relative">
                   <div
                     ref={messagesScrollRef}
                     onScroll={handleMessagesScroll}
-                    className="h-full space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6"
+                    className="space-y-5 p-4 sm:p-6"
                     style={{
                       background:
                         "radial-gradient(ellipse at top right, rgba(240,120,50,0.035), transparent 55%), #141517",
@@ -1337,7 +1346,7 @@ export default function MessagesPage() {
                       onClick={scrollToLatestMessages}
                       aria-label="Перейти к новым сообщениям"
                       title="Перейти к новым сообщениям"
-                      className="absolute bottom-5 right-5 z-10 flex h-11 w-11 items-center justify-center rounded-full border text-xl font-bold shadow-xl transition hover:-translate-y-0.5 hover:brightness-110"
+                      className="fixed bottom-5 right-5 z-20 flex h-11 w-11 items-center justify-center rounded-full border text-xl font-bold shadow-xl transition hover:-translate-y-0.5 hover:brightness-110"
                       style={{
                         background: C.orange,
                         borderColor: "rgba(255,255,255,0.18)",
