@@ -66,7 +66,7 @@ function Logo({ size = "normal" }: { size?: "normal" | "large" }) {
       </div>
 
       <span
-        className={`font-black tracking-tight ${
+        className={`font-black tracking-tight max-[380px]:hidden ${
           large ? "text-2xl" : "text-lg"
         }`}
       >
@@ -344,9 +344,9 @@ export default function Home() {
           borderColor: C.border,
         }}
       >
-        <div className="mx-auto max-w-7xl px-5 py-3 lg:px-8">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex shrink-0 items-center gap-3">
+        <div className="mx-auto max-w-7xl px-3 py-3 sm:px-5 lg:px-8">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setMenuOpen((previous) => !previous)}
