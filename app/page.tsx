@@ -861,8 +861,8 @@ export default function Home() {
       </section>
 
       {/* GAMES */}
-      <section id="games" className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
-        <div className="mb-9">
+      <section id="games" className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
+        <div className="mb-9 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <p
             className="mb-3 text-xs font-black uppercase tracking-[0.25em]"
             style={{ color: C.orange }}
@@ -881,6 +881,9 @@ export default function Home() {
               Результаты поиска: {filteredGames.length}
             </p>
           )}
+          <a href="#offers" className="hidden shrink-0 rounded-xl border px-4 py-3 text-xs font-bold transition hover:bg-white/[.05] sm:inline-flex" style={{ borderColor: C.border, color: C.muted }}>
+            Узнать о VEXORA <span className="ml-2" style={{ color: C.orange }}>↗</span>
+          </a>
         </div>
 
         <div className="mb-9 flex gap-2 overflow-x-auto pb-3">
@@ -944,14 +947,14 @@ export default function Home() {
                   role="link"
                   tabIndex={0}
                   aria-label={`Открыть страницу игры ${game.title}`}
-                  className="group cursor-pointer overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#F07832]"
+                  className="group cursor-pointer overflow-hidden rounded-[22px] border transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_55px_rgba(0,0,0,.28)] focus:outline-none focus:ring-2 focus:ring-[#F07832]"
                   style={{
                     background: C.surface,
                     borderColor: C.border,
                   }}
                 >
                   <div
-                    className="relative h-52 overflow-hidden"
+                    className="relative h-56 overflow-hidden sm:h-60"
                     style={{
                       background: game.image_url
                         ? `url("${game.image_url}") center/cover`
@@ -967,10 +970,11 @@ export default function Home() {
                       </div>
                     )}
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/5 to-transparent transition duration-500 group-hover:from-black/75" />
+                    {game.image_url && <div className="absolute inset-0 bg-black/0 transition duration-500 group-hover:bg-black/10" />}
 
                     <span
-                      className="absolute left-4 top-4 rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md"
+                      className="absolute left-4 top-4 rounded-lg border px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md"
                       style={{
                         color: C.text,
                         background: "rgba(17,18,20,0.75)",
@@ -988,7 +992,7 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <div className="p-5">
+                  <div className="p-5 sm:p-6">
                     <h3 className="text-lg font-bold transition group-hover:text-[#FF9A54]">
                       {game.title}
                     </h3>
