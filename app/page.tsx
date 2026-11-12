@@ -149,6 +149,12 @@ export default function Home() {
 
       if (!active) return;
 
+      console.info("VEXORA unread messages diagnostic:", {
+        authenticatedUserId: user.id,
+        returnedUnreadCount: data?.length ?? 0,
+        error: error?.message ?? null,
+      });
+
       if (error) {
         console.error("VEXORA unread messages query failed:", error);
         return;
