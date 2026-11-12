@@ -81,9 +81,8 @@ export default function GroupsPage() {
       return;
     }
 
-    const nextMembers = (membershipData || []) as GroupMember[];
-    setMembers(nextMembers);
-    const ids = nextMembers.map((member) => member.group_id);
+    const ownMemberships = (membershipData || []) as GroupMember[];
+    const ids = ownMemberships.map((member) => member.group_id);
 
     if (ids.length === 0) {
       setGroups([]);
@@ -103,6 +102,18 @@ export default function GroupsPage() {
     }
 
     const nextGroups = (groupData || []) as Group[];
+
+    const { data: allMemberData, error: allMembersError } = await supabase
+      .from("chat_group_members")
+      .select("group_id,user_id,role")
+      .in("group_id", ids);
+
+    if (allMembersError) {
+      setNotice("Не удалось загрузить участников: " + allMembersError.message);
+      return;
+    }
+
+    setMembers((allMemberData || []) as GroupMember[]);
     setGroups(nextGroups);
     setSelectedGroupId((current) =>
       current && nextGroups.some((group) => group.id === current)
