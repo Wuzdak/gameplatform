@@ -17,13 +17,13 @@ type Game = {
 };
 
 const C = {
-  bg: "#111214",
-  surface: "#1B1D20",
-  surface2: "#242629",
-  border: "#303236",
-  orange: "#F07832",
-  text: "#E7E7E7",
-  muted: "#92949A",
+  bg: "#0A0E18",
+  surface: "#121A2A",
+  surface2: "#19243A",
+  border: "#293650",
+  orange: "#3978FF",
+  text: "#EDF3FF",
+  muted: "#9AA8BD",
 };
 
 export default function LibraryPage() {
@@ -246,7 +246,7 @@ export default function LibraryPage() {
                   className="flex h-9 w-9 items-center justify-center rounded-xl text-lg font-black text-black"
                   style={{
                     background: C.orange,
-                    boxShadow: "0 5px 25px rgba(240,120,50,0.2)",
+                    boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
                   }}
                 >
                   V
@@ -272,7 +272,7 @@ export default function LibraryPage() {
                 placeholder="Поиск в библиотеке..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-orange-500"
+                className="w-full rounded-xl border py-3 pl-11 pr-11 text-sm text-white outline-none transition focus:border-blue-500"
                 style={{
                   background: C.surface,
                   borderColor: C.border,
@@ -323,7 +323,7 @@ export default function LibraryPage() {
               placeholder="Поиск в библиотеке..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              className="w-full rounded-xl border py-3 pl-11 pr-4 text-sm text-white outline-none focus:border-orange-500"
+              className="w-full rounded-xl border py-3 pl-11 pr-4 text-sm text-white outline-none focus:border-blue-500"
               style={{
                 background: C.surface,
                 borderColor: C.border,
@@ -355,7 +355,7 @@ export default function LibraryPage() {
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{
-          background: "#17181A",
+          background: "#101827",
           borderColor: C.border,
         }}
       >
@@ -455,7 +455,7 @@ export default function LibraryPage() {
             className="flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-semibold transition hover:bg-white/5"
             style={{
               color: C.orange,
-              background: "rgba(240,120,50,0.08)",
+              background: "rgba(57,120,255,0.08)",
             }}
           >
             <span className="w-5 text-center text-lg">▤</span>
@@ -741,7 +741,7 @@ export default function LibraryPage() {
                 {sortedGames.map((game) => (
                   <article
                     key={game.id}
-                    className="group overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-1 hover:border-orange-500/50"
+                    className="group overflow-hidden rounded-2xl border transition duration-300 hover:-translate-y-1 hover:border-blue-500/50"
                     style={{
                       background: C.surface,
                       borderColor: C.border,
@@ -751,7 +751,7 @@ export default function LibraryPage() {
                     <div
                       className="relative h-52 overflow-hidden"
                       style={{
-                        background: "linear-gradient(135deg,#39302A,#1B1D20)",
+                        background: "linear-gradient(135deg,#1B2A45,#121A2A)",
                       }}
                     >
                       {game.image_url && (
@@ -787,7 +787,7 @@ export default function LibraryPage() {
 
                       <span
                         className="absolute bottom-4 left-4 text-xs font-bold"
-                        style={{ color: "#FFD0AE" }}
+                        style={{ color: "#C9D8FF" }}
                       >
                         {game.genre}
                       </span>
@@ -795,7 +795,7 @@ export default function LibraryPage() {
 
                     {/* GAME INFO */}
                     <div className="p-5">
-                      <h3 className="truncate text-xl font-bold transition group-hover:text-orange-400">
+                      <h3 className="truncate text-xl font-bold transition group-hover:text-blue-400">
                         {game.game_title}
                       </h3>
 
@@ -841,7 +841,7 @@ export default function LibraryPage() {
                             Добавлена
                           </p>
 
-                          <p className="mt-1 text-sm font-semibold" style={{ color: "#FFB98F" }}>
+                          <p className="mt-1 text-sm font-semibold" style={{ color: "#B8CEFF" }}>
                             {new Date(game.acquired_at).toLocaleDateString("ru-RU")}
                           </p>
                         </div>
@@ -849,7 +849,7 @@ export default function LibraryPage() {
                         <span
                           className="flex h-9 w-9 items-center justify-center rounded-lg text-lg"
                           style={{
-                            background: "rgba(240,120,50,0.1)",
+                            background: "rgba(57,120,255,0.1)",
                             color: C.orange,
                           }}
                         >
@@ -902,7 +902,7 @@ export default function LibraryPage() {
       <footer
         className="mt-10 border-t"
         style={{
-          background: "#0D0E10",
+          background: "#080C14",
           borderColor: C.border,
         }}
       >
