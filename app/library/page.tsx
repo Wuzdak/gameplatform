@@ -8,6 +8,7 @@ import { supabase } from "../../lib/supabase";
 
 type Game = {
   id: string;
+  user_id: string;
   game_title: string;
   genre: string;
   image_url: string | null;
@@ -33,6 +34,7 @@ export default function LibraryPage() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("Все");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
 
   // Загрузка библиотеки
   useEffect(() => {
@@ -67,7 +69,34 @@ export default function LibraryPage() {
           "Не удалось загрузить библиотеку: " + error.message
         );
       } else {
-        setGames(data ?? []);
+        const libraryGames = (data ?? []) as Game[];
+        const gameTitles = Array.from(
+          new Set(libraryGames.map((game) => game.game_title).filter(Boolean))
+        );
+
+        // Старые записи библиотеки могли быть созданы до появления launch_url.
+        // Подтягиваем ссылку из каталога, чтобы кнопка появилась и у них.
+        if (gameTitles.length > 0) {
+          const { data: catalogGames } = await supabase
+            .from("games")
+            .select("title, launch_url")
+            .in("title", gameTitles);
+
+          if (!mounted) return;
+
+          const launchUrls = new Map(
+            (catalogGames ?? []).map((game) => [game.title, game.launch_url])
+          );
+
+          setGames(
+            libraryGames.map((game) => ({
+              ...game,
+              launch_url: game.launch_url || launchUrls.get(game.game_title) || null,
+            }))
+          );
+        } else {
+          setGames(libraryGames);
+        }
       }
 
       setLoading(false);
@@ -108,6 +137,32 @@ export default function LibraryPage() {
       document.body.style.overflow = previousOverflow;
     };
   }, [menuOpen]);
+
+  async function removeFromLibrary(game: Game) {
+    if (!user || deletingGameId) return;
+
+    const confirmed = window.confirm(
+      `Удалить «${game.game_title}» из библиотеки?`
+    );
+    if (!confirmed) return;
+
+    setDeletingGameId(game.id);
+    setMessage("");
+
+    const { error } = await supabase
+      .from("user_library")
+      .delete()
+      .eq("id", game.id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      setMessage("Не удалось удалить игру: " + error.message);
+    } else {
+      setGames((previous) => previous.filter((item) => item.id !== game.id));
+    }
+
+    setDeletingGameId(null);
+  }
 
   const displayName =
     user?.user_metadata?.full_name || user?.email || "Пользователь";
@@ -718,7 +773,7 @@ export default function LibraryPage() {
                         {game.game_title}
                       </h3>
 
-                      {game.launch_url ? (
+                      {game.launch_url && game.launch_url.startsWith("https://") ? (
                         <a
                           href={game.launch_url}
                           target="_blank"
@@ -740,6 +795,16 @@ export default function LibraryPage() {
                           Скоро будет доступно
                         </button>
                       )}
+
+                      <button
+                        type="button"
+                        onClick={() => removeFromLibrary(game)}
+                        disabled={deletingGameId === game.id || deletingGameId !== null}
+                        className="mt-3 w-full rounded-xl border px-4 py-2.5 text-sm font-semibold transition hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                        style={{ borderColor: C.border, color: "#F08A8A" }}
+                      >
+                        {deletingGameId === game.id ? "Удаление..." : "Удалить из библиотеки"}
+                      </button>
 
                       <div
                         className="mt-5 flex items-center justify-between border-t pt-4"
