@@ -177,9 +177,9 @@ export default function NotificationBell() {
         aria-expanded={open}
         className="relative flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition hover:bg-white/10"
         style={{
-          background: "#1B1D20",
-          borderColor: "#303236",
-          color: "#E7E7E7",
+          background: "#121A2A",
+          borderColor: "#293650",
+          color: "#EDF3FF",
         }}
       >
         <svg
@@ -199,7 +199,7 @@ export default function NotificationBell() {
         {unreadCount > 0 && (
           <span
             className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black text-black"
-            style={{ background: "#F07832" }}
+            style={{ background: "#3978FF" }}
           >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
@@ -217,15 +217,15 @@ export default function NotificationBell() {
 
           <section
             className="absolute right-0 top-14 z-[90] w-[min(380px,calc(100vw-24px))] overflow-hidden rounded-2xl border shadow-2xl"
-            style={{ background: "#1B1D20", borderColor: "#303236" }}
+            style={{ background: "#121A2A", borderColor: "#293650" }}
           >
             <div
               className="flex items-center justify-between border-b px-4 py-4"
-              style={{ borderColor: "#303236" }}
+              style={{ borderColor: "#293650" }}
             >
               <div>
                 <h2 className="font-bold text-white">Уведомления</h2>
-                <p className="mt-1 text-xs text-[#92949A]">
+                <p className="mt-1 text-xs text-[#9AA8BD]">
                   {unreadCount > 0 ? `${unreadCount} непрочитанных` : "Всё просмотрено"}
                 </p>
               </div>
@@ -235,7 +235,7 @@ export default function NotificationBell() {
                 onClick={markAllAsRead}
                 disabled={unreadCount === 0 || updating}
                 className="text-xs font-semibold transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ color: "#F07832" }}
+                style={{ color: "#3978FF" }}
               >
                 {updating ? "Обработка..." : "Прочитать все"}
               </button>
@@ -243,14 +243,14 @@ export default function NotificationBell() {
 
             <div className="max-h-[420px] overflow-y-auto">
               {loading ? (
-                <div className="px-4 py-10 text-center text-sm text-[#92949A]">
+                <div className="px-4 py-10 text-center text-sm text-[#9AA8BD]">
                   Загрузка уведомлений...
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="px-4 py-12 text-center">
                   <div className="mb-3 text-3xl">♧</div>
                   <p className="font-semibold text-white">Пока нет уведомлений</p>
-                  <p className="mt-1 text-xs text-[#92949A]">
+                  <p className="mt-1 text-xs text-[#9AA8BD]">
                     Здесь будут появляться важные события VEXORA
                   </p>
                 </div>
@@ -265,15 +265,15 @@ export default function NotificationBell() {
                     }}
                     className="flex gap-3 border-b px-4 py-4 transition hover:bg-white/[0.04]"
                     style={{
-                      borderColor: "#303236",
+                      borderColor: "#293650",
                       background: notification.is_read
                         ? "transparent"
-                        : "rgba(240,120,50,0.06)",
+                        : "rgba(57,120,255,0.06)",
                     }}
                   >
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
-                      style={{ background: "#292B2F", color: "#F07832" }}
+                      style={{ background: "#292B2F", color: "#3978FF" }}
                     >
                       {notificationIcon(notification.type)}
                     </div>
@@ -286,7 +286,7 @@ export default function NotificationBell() {
                         {!notification.is_read && (
                           <span
                             className="mt-1 h-2 w-2 shrink-0 rounded-full"
-                            style={{ background: "#F07832" }}
+                            style={{ background: "#3978FF" }}
                           />
                         )}
                       </div>
@@ -305,20 +305,20 @@ export default function NotificationBell() {
 
             <div
               className="flex items-center justify-between border-t px-4 py-3"
-              style={{ borderColor: "#303236" }}
+              style={{ borderColor: "#293650" }}
             >
               <Link
                 href="/notifications"
                 onClick={() => setOpen(false)}
                 className="text-xs font-bold transition hover:text-white"
-                style={{ color: "#F07832" }}
+                style={{ color: "#3978FF" }}
               >
                 Все уведомления →
               </Link>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-xs font-semibold text-[#92949A] transition hover:text-white"
+                className="text-xs font-semibold text-[#9AA8BD] transition hover:text-white"
               >
                 Закрыть
               </button>
