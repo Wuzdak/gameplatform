@@ -173,7 +173,7 @@ function Logo() {
       <div
         className="flex h-10 w-10 items-center justify-center rounded-xl text-xl font-black text-white"
         style={{
-          background: "linear-gradient(135deg, #3978FF 0%, #8257E5 100%)",
+          background: "linear-gradient(135deg, #3978FF 0%, #83B2FF 100%)",
           boxShadow: "0 5px 25px rgba(57,120,255,0.2)",
         }}
       >
