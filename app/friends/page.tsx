@@ -761,9 +761,9 @@ export default function FriendsPage() {
                         <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#0A0E18] ${getPresence(entry) === "online" ? "bg-emerald-400" : getPresence(entry) === "do_not_disturb" ? "bg-red-400" : "bg-gray-500"}`} />
                       </div>
                       <div className="min-w-0">
-                        <span className="block truncate font-bold">
+                        <Link href={`/player/${entry.friend_id}`} className="block truncate font-bold transition hover:text-orange-400">
                         {entry.full_name || "Игрок"}
-                        </span>
+                        </Link>
                         <div className="mt-1"><PresenceLabel entry={entry} /></div>
                       </div>
                     </div>
