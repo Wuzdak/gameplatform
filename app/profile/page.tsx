@@ -121,6 +121,7 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [avatarMessage, setAvatarMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -157,7 +158,7 @@ export default function ProfilePage() {
 
           supabase
             .from("profiles")
-            .select("id, avatar_url")
+            .select("id, avatar_url, banner_url")
             .eq("id", currentUser.id)
             .maybeSingle(),
         ]);
@@ -178,6 +179,7 @@ export default function ProfilePage() {
           );
         } else {
           setAvatarUrl(profileResult.data.avatar_url || null);
+          setBannerUrl(profileResult.data.banner_url || null);
         }
       } catch (err) {
         if (mounted) {
@@ -780,7 +782,11 @@ export default function ProfilePage() {
             />
 
             <div className="relative">
-              <Avatar value={avatarUrl} name={displayName} />
+              <div className="relative inline-flex items-center justify-center">
+                <div aria-hidden="true" className="absolute -inset-4 rounded-[2rem] opacity-80 blur-2xl transition duration-500" style={{ backgroundImage: bannerUrl ? `url("${bannerUrl}")` : "linear-gradient(135deg, rgba(240,120,50,0.8), rgba(255,154,84,0.18), rgba(240,120,50,0.55))", backgroundPosition: "center", backgroundSize: "cover" }} />
+                <div aria-hidden="true" className="absolute -inset-1 rounded-[1.8rem] border border-orange-400/40" style={{ boxShadow: "0 0 24px rgba(240,120,50,0.35)" }} />
+                <div className="relative"><Avatar value={avatarUrl} name={displayName} /></div>
+              </div>
 
               <h2 className="mt-6 break-words text-2xl font-black">
                 {displayName}
