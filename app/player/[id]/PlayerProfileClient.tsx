@@ -159,13 +159,17 @@ export default function PublicPlayerClient({ profileId }: { profileId: string })
           </div>
           <div className="p-5 sm:p-8">
             <div className="-mt-16 flex flex-wrap items-end gap-4 sm:-mt-20">
-              {profile.avatar_url?.startsWith("https://") ? (
-                <img src={profile.avatar_url} alt="" className="h-24 w-24 rounded-2xl border-4 object-cover sm:h-28 sm:w-28" style={{ borderColor: C.surface }} />
-              ) : (
-                <div className="flex h-24 w-24 items-center justify-center rounded-2xl border-4 text-4xl font-black sm:h-28 sm:w-28" style={{ borderColor: C.surface, background: "rgba(240,120,50,0.14)", color: C.orange }}>
-                  {profile.full_name.charAt(0).toUpperCase()}
-                </div>
-              )}
+              <div className="relative isolate flex shrink-0 items-center justify-center">
+                <div aria-hidden="true" className="absolute -inset-4 rounded-[2rem] opacity-85 blur-2xl" style={{ backgroundImage: profile.banner_url ? `url("${profile.banner_url}")` : "linear-gradient(135deg, rgba(240,120,50,0.8), rgba(255,154,84,0.18), rgba(240,120,50,0.55))", backgroundPosition: "center", backgroundSize: "cover" }} />
+                <div aria-hidden="true" className="absolute -inset-1 rounded-[1.8rem] border border-orange-400/40" style={{ boxShadow: "0 0 26px rgba(240,120,50,0.4)" }} />
+                {profile.avatar_url?.startsWith("https://") ? (
+                  <img src={profile.avatar_url} alt="" className="relative z-10 h-24 w-24 rounded-2xl border-4 object-cover sm:h-28 sm:w-28" style={{ borderColor: C.surface }} />
+                ) : (
+                  <div className="relative z-10 flex h-24 w-24 items-center justify-center rounded-2xl border-4 text-4xl font-black sm:h-28 sm:w-28" style={{ borderColor: C.surface, background: "rgba(240,120,50,0.14)", color: C.orange }}>
+                    {profile.full_name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
               <div className="min-w-0 flex-1 pb-1">
                 <p className="text-xs font-black uppercase tracking-[0.2em]" style={{ color: C.orange }}>PLAYER PROFILE</p>
                 <h1 className="mt-2 break-words text-2xl font-black sm:text-3xl">{profile.full_name} {profile.name_sticker || ""}</h1>
