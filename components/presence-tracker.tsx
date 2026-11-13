@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from "react";
@@ -8,12 +7,52 @@ export default function PresenceTracker() {
   useEffect(() => {
     let active = true;
     let interval: ReturnType<typeof setInterval> | null = null;
+    let statusInterval: ReturnType<typeof setInterval> | null = null;
     let heartbeatInProgress = false;
+    let statusCheckInProgress = false;
+    let blockedRedirecting = false;
 
     function stopHeartbeat() {
       if (interval) {
         clearInterval(interval);
         interval = null;
+      }
+      if (statusInterval) {
+        clearInterval(statusInterval);
+        statusInterval = null;
+      }
+    }
+
+    async function checkAccountStatus() {
+      if (!active || blockedRedirecting || statusCheckInProgress) return;
+
+      statusCheckInProgress = true;
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (!token || !active) return;
+
+        const response = await fetch("/api/account-status", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+
+        if (response.status === 403) {
+          const result = await response.json().catch(() => null);
+          if (result?.code === "account_blocked") {
+            blockedRedirecting = true;
+            stopHeartbeat();
+            await supabase.auth.signOut({ scope: "local" });
+            if (active) {
+              window.location.replace("/auth?blocked=1");
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Account status check error:", error);
+      } finally {
+        statusCheckInProgress = false;
       }
     }
 
@@ -21,7 +60,8 @@ export default function PresenceTracker() {
       if (
         !active ||
         document.visibilityState !== "visible" ||
-        heartbeatInProgress
+        heartbeatInProgress ||
+        blockedRedirecting
       ) {
         return;
       }
@@ -29,6 +69,9 @@ export default function PresenceTracker() {
       heartbeatInProgress = true;
 
       try {
+        await checkAccountStatus();
+        if (!active || blockedRedirecting) return;
+
         const { data, error } = await supabase.auth.getUser();
 
         if (!active || error || !data.user) {
@@ -53,18 +96,28 @@ export default function PresenceTracker() {
     }
 
     function startHeartbeat() {
-      if (!active) return;
+      if (!active || blockedRedirecting) return;
 
       stopHeartbeat();
-
-      heartbeat();
+      void checkAccountStatus();
+      void heartbeat();
 
       interval = setInterval(() => {
-        heartbeat();
+        void heartbeat();
       }, 30000);
+
+      // Проверяем блокировку каждые 5 секунд, чтобы завершить активную сессию почти сразу.
+      statusInterval = setInterval(() => {
+        if (document.visibilityState === "visible") {
+          void checkAccountStatus();
+        }
+      }, 5000);
     }
 
     async function initialize() {
+      await checkAccountStatus();
+      if (!active || blockedRedirecting) return;
+
       const { data, error } = await supabase.auth.getUser();
 
       if (!active) return;
@@ -99,27 +152,20 @@ export default function PresenceTracker() {
 
     function handleVisibilityChange() {
       if (document.visibilityState === "visible") {
-        heartbeat();
+        void checkAccountStatus();
+        void heartbeat();
       }
     }
 
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibilityChange
-    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    initialize();
+    void initialize();
 
     return () => {
       active = false;
-
       stopHeartbeat();
       subscription.unsubscribe();
-
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange
-      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
