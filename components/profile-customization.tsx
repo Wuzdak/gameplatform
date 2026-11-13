@@ -10,7 +10,7 @@ export default function ProfileCustomization({ userId }: { userId: string }) {
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [sticker, setSticker] = useState("");
   const [bio, setBio] = useState("");
-  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [visibility, setVisibility] = useState<"public" | "private">("private");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
