@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabase";
+import ProfileCustomization from "../../components/profile-customization";
 
 type MenuItem = {
   title: string;
@@ -866,6 +867,8 @@ export default function ProfilePage() {
             </div>
           </div>
         </section>
+
+        <ProfileCustomization userId={user.id} />
 
         {/* AVATAR SETTINGS */}
         <section
