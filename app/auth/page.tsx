@@ -79,6 +79,8 @@ export default function AuthPage() {
             data: {
               full_name: fullName,
             },
+            // Return to the same deployed VEXORA origin after email confirmation.
+            emailRedirectTo: `${window.location.origin}/auth`,
           },
         });
 
