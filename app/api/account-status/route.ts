@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const token = request.headers
       .get("authorization")
-      ?.replace(/^Bearer\\s+/i, "");
+      ?.replace(/^Bearer\s+/i, "");
 
     if (!token) {
       return NextResponse.json(
