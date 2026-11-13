@@ -172,9 +172,11 @@ export default function Home() {
     let active = true;
 
     async function loadUnreadMessages() {
-      const { data, error } = await supabase
+      if (document.visibilityState !== "visible") return;
+
+      const { count, error } = await supabase
         .from("messages")
-        .select("id")
+        .select("id", { count: "exact", head: true })
         .eq("receiver_id", currentUserId)
         .eq("is_read", false);
 
@@ -185,7 +187,7 @@ export default function Home() {
         return;
       }
 
-      setUnreadMessages(data?.length ?? 0);
+      setUnreadMessages(count ?? 0);
     }
 
     const refreshUnreadMessages = () => {
@@ -194,17 +196,19 @@ export default function Home() {
 
     refreshUnreadMessages();
 
-    // Обновляем счётчик при возврате на вкладку и при открытии меню,
-    // а также периодически, чтобы не зависеть от Realtime.
-    const refreshTimer = setInterval(refreshUnreadMessages, 5000);
+    // Refresh less often and only while the tab is visible.
+    const refreshTimer = setInterval(refreshUnreadMessages, 30000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") refreshUnreadMessages();
+    };
     window.addEventListener("focus", refreshUnreadMessages);
-    document.addEventListener("visibilitychange", refreshUnreadMessages);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       active = false;
       clearInterval(refreshTimer);
       window.removeEventListener("focus", refreshUnreadMessages);
-      document.removeEventListener("visibilitychange", refreshUnreadMessages);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [user]);
 
