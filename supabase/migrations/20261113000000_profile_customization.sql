@@ -3,7 +3,7 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS banner_url text,
   ADD COLUMN IF NOT EXISTS name_sticker text,
   ADD COLUMN IF NOT EXISTS bio text,
-  ADD COLUMN IF NOT EXISTS library_visibility text NOT NULL DEFAULT 'public';
+  ADD COLUMN IF NOT EXISTS library_visibility text NOT NULL DEFAULT 'private';
 
 ALTER TABLE public.profiles
   DROP CONSTRAINT IF EXISTS profiles_library_visibility_check;
