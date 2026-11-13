@@ -90,6 +90,35 @@ export default function Home() {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [playerProgress, setPlayerProgress] = useState<PlayerProgress | null>(null);
   const [recentAchievements, setRecentAchievements] = useState<RecentAchievement[]>([]);
+  const [activeSection, setActiveSection] = useState("store");
+
+  useEffect(() => {
+    const sectionIds = ["store", "games", "offers"];
+
+    function updateActiveSection() {
+      const header = document.querySelector("header");
+      const activationLine = (header?.getBoundingClientRect().height ?? 0) + 90;
+      let currentSection = "store";
+
+      for (const sectionId of sectionIds) {
+        const section = document.getElementById(sectionId);
+        if (section && section.getBoundingClientRect().top <= activationLine) {
+          currentSection = sectionId;
+        }
+      }
+
+      setActiveSection(currentSection);
+    }
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, []);
 
   useEffect(() => {
     async function loadGames() {
@@ -365,10 +394,30 @@ export default function Home() {
               <Logo />
             </div>
 
-            <nav className="hidden items-center gap-5 xl:flex">
-              <a href="#store" className="text-xs font-bold transition hover:text-white" style={{ color: C.orange }}>Главная</a>
-              <a href="#games" className="text-xs font-semibold transition hover:text-white" style={{ color: C.muted }}>Каталог</a>
-              <a href="#offers" className="text-xs font-semibold transition hover:text-white" style={{ color: C.muted }}>О VEXORA</a>
+            <nav aria-label="Навигация по главной странице" className="hidden items-center gap-5 xl:flex">
+              {[
+                { id: "store", label: "Главная" },
+                { id: "games", label: "Каталог" },
+                { id: "offers", label: "О VEXORA" },
+              ].map((item) => {
+                const isActive = activeSection === item.id;
+
+                return (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    aria-current={isActive ? "location" : undefined}
+                    onClick={() => setActiveSection(item.id)}
+                    className={`relative py-2 text-xs font-bold transition-colors duration-200 hover:text-white after:absolute after:bottom-0 after:left-0 after:h-0.5 after:rounded-full after:bg-[#F07832] after:transition-all after:duration-200 ${
+                      isActive
+                        ? "text-[#F07832] after:w-full"
+                        : "text-[#9AA8BD] after:w-0"
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
             </nav>
 
             <div className="relative mx-auto hidden w-full max-w-xl md:block">
