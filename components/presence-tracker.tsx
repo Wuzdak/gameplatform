@@ -7,7 +7,6 @@ export default function PresenceTracker() {
   useEffect(() => {
     let active = true;
     let interval: ReturnType<typeof setInterval> | null = null;
-    let statusInterval: ReturnType<typeof setInterval> | null = null;
     let heartbeatInProgress = false;
     let statusCheckInProgress = false;
     let blockedRedirecting = false;
@@ -16,10 +15,6 @@ export default function PresenceTracker() {
       if (interval) {
         clearInterval(interval);
         interval = null;
-      }
-      if (statusInterval) {
-        clearInterval(statusInterval);
-        statusInterval = null;
       }
     }
 
@@ -44,9 +39,7 @@ export default function PresenceTracker() {
             blockedRedirecting = true;
             stopHeartbeat();
             await supabase.auth.signOut({ scope: "local" });
-            if (active) {
-              window.location.replace("/auth?blocked=1");
-            }
+            if (active) window.location.replace("/auth?blocked=1");
           }
         }
       } catch (error) {
@@ -67,26 +60,20 @@ export default function PresenceTracker() {
       }
 
       heartbeatInProgress = true;
-
       try {
+        // One account-status check per heartbeat; no separate 5-second poll.
         await checkAccountStatus();
         if (!active || blockedRedirecting) return;
 
         const { data, error } = await supabase.auth.getUser();
-
-        if (!active || error || !data.user) {
-          return;
-        }
+        if (!active || error || !data.user) return;
 
         const { error: presenceError } = await supabase.rpc(
           "heartbeat_my_presence"
         );
 
         if (presenceError) {
-          console.error(
-            "Presence heartbeat error:",
-            presenceError.message
-          );
+          console.error("Presence heartbeat error:", presenceError.message);
         }
       } catch (error) {
         console.error("Presence error:", error);
@@ -97,36 +84,20 @@ export default function PresenceTracker() {
 
     function startHeartbeat() {
       if (!active || blockedRedirecting) return;
-
       stopHeartbeat();
-      void checkAccountStatus();
       void heartbeat();
-
       interval = setInterval(() => {
         void heartbeat();
       }, 30000);
-
-      // Проверяем блокировку каждые 5 секунд, чтобы завершить активную сессию почти сразу.
-      statusInterval = setInterval(() => {
-        if (document.visibilityState === "visible") {
-          void checkAccountStatus();
-        }
-      }, 5000);
     }
 
     async function initialize() {
-      await checkAccountStatus();
-      if (!active || blockedRedirecting) return;
-
       const { data, error } = await supabase.auth.getUser();
-
       if (!active) return;
-
       if (error || !data.user) {
         stopHeartbeat();
         return;
       }
-
       startHeartbeat();
     }
 
@@ -134,31 +105,21 @@ export default function PresenceTracker() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
-
       if (
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED" ||
         event === "USER_UPDATED"
       ) {
-        if (session?.user) {
-          startHeartbeat();
-        }
+        if (session?.user) startHeartbeat();
       }
-
-      if (event === "SIGNED_OUT") {
-        stopHeartbeat();
-      }
+      if (event === "SIGNED_OUT") stopHeartbeat();
     });
 
     function handleVisibilityChange() {
-      if (document.visibilityState === "visible") {
-        void checkAccountStatus();
-        void heartbeat();
-      }
+      if (document.visibilityState === "visible") void heartbeat();
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
     void initialize();
 
     return () => {
