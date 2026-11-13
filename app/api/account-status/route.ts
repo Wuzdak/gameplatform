@@ -39,17 +39,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: targetData, error: targetError } =
-      await admin.auth.admin.getUserById(authData.user.id);
-
-    if (targetError || !targetData.user) {
-      return NextResponse.json(
-        { error: "Unable to verify account status." },
-        { status: 503, headers: { "Cache-Control": "no-store" } }
-      );
-    }
-
-    const bannedUntil = targetData.user.banned_until;
+    // getUser(token) already returns the verified user record, including ban status.
+    // Avoid a second Auth Admin request for every active visitor.
+    const bannedUntil = authData.user.banned_until;
     const isCurrentlyBanned =
       typeof bannedUntil === "string" &&
       Number.isFinite(Date.parse(bannedUntil)) &&
