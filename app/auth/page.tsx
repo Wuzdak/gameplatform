@@ -25,6 +25,12 @@ export default function AuthPage() {
   useEffect(() => {
     let mounted = true;
 
+    if (new URLSearchParams(window.location.search).get("blocked") === "1") {
+      setMode("login");
+      setMessage("Этот аккаунт заблокирован администрацией VEXORA. Вход будет доступен после снятия блокировки.");
+      setMessageType("error");
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       if (mounted) {
         setUser(data.session?.user ?? null);
@@ -122,12 +128,18 @@ export default function AuthPage() {
         showMessage("Пароль успешно изменён! Теперь можешь войти.");
       }
     } catch (error) {
-      showMessage(
-        error instanceof Error
-          ? error.message
-          : "Произошла неизвестная ошибка.",
-        "error"
-      );
+      const errorMessage = error instanceof Error ? error.message : "";
+      if (mode === "login" && /banned|ban_duration|user is banned/i.test(errorMessage)) {
+        showMessage(
+          "Этот аккаунт заблокирован администрацией VEXORA. Вход будет доступен после снятия блокировки.",
+          "error"
+        );
+      } else {
+        showMessage(
+          errorMessage || "Произошла неизвестная ошибка.",
+          "error"
+        );
+      }
     } finally {
       setLoading(false);
     }
