@@ -56,22 +56,32 @@ export default function ProfileCustomization({ userId }: { userId: string }) {
     setMessage("");
     const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
     const path = userId + "/banners/" + crypto.randomUUID() + "." + extension;
+    let uploadStage = "подготовка файла";
     try {
+      uploadStage = "загрузка файла в Storage (bucket avatars)";
       const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, {
         cacheControl: "3600", upsert: false, contentType: file.type,
       });
       if (uploadError) throw uploadError;
+      uploadStage = "получение публичной ссылки";
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);
       const url = data.publicUrl;
+      uploadStage = "сохранение ссылки в таблице profiles";
       const { data: updated, error } = await supabase.from("profiles")
         .update({ banner_url: url }).eq("id", userId).select("banner_url").maybeSingle();
       if (error) throw error;
       if (!updated) throw new Error("Профиль не найден или обновление запрещено политикой RLS.");
       setBannerUrl(updated.banner_url);
       setMessage("Баннер сохранён.");
-    } catch (error) {
-      await supabase.storage.from("avatars").remove([path]);
-      setMessage("Не удалось загрузить баннер: " + (error instanceof Error ? error.message : "Неизвестная ошибка"));
+    } catch (error: unknown) {
+      console.error("[VEXORA] Banner upload failed:", { stage: uploadStage, error });
+      try { await supabase.storage.from("avatars").remove([path]); } catch (cleanupError) {
+        console.warn("[VEXORA] Could not clean up failed banner upload:", cleanupError);
+      }
+      const details = error && typeof error === "object"
+        ? ("message" in error && typeof error.message === "string" ? error.message : JSON.stringify(error))
+        : typeof error === "string" ? error : String(error);
+      setMessage("Не удалось загрузить баннер (" + uploadStage + "): " + (details || "Подробности отсутствуют. Открой консоль браузера (F12)."));
     } finally {
       setSaving(false);
       event.target.value = "";
